@@ -3,72 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tally Data Extraction to SQL</title>
+    <title>Tally Data Extraction Reference</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chosen Palette: Warm Neutrals (Stone) with Muted Blue/Green Accents -->
+    <!-- Chosen Palette: Enterprise Blue & Slate. Clean, high contrast, readable. -->
     <!-- 
-    Application Structure Plan: 
-    A single-page, top-to-bottom narrative structure. Users start with an intro, then explore the 'how' (Methods), the 'what' (Data Model), and the 'so what' (Recommendation). This logical flow mirrors the user's questions.
-    
-    UPDATES FOR GEMINI INTEGRATION:
-    1. Data Model Section: Added a "Generate SQL Schema" button within the object detail view.
-    2. Recommendation Section: Added a "Generate ETL Script" feature to provide code snippets.
-    
-    Key Interactions:
-    1. Methods Section: A responsive 2x2 grid of cards for easy comparison of Pros/Cons.
-    2. Data Model Section: An interactive toggle ('Masters' / 'Transactions') that dynamically updates a list of data objects. Clicking an object (e.g., 'Ledger') updates a 'Details' pane with its key attributes. 
-       * NEW: Clicking "✨ Generate SQL Schema" calls Gemini to write the DDL.
-    3. Diagrams: HTML/Tailwind diagrams for relationships and ETL process.
+    Application Structure Plan:
+    - Layout: Sidebar navigation (sticky on desktop) + Main Content Area.
+    - Section 1: Overview (Brief context).
+    - Section 2: Object Library (Categorized list of all Tally Masters/Transactions).
+    - Section 3: Report Integration (Static XML Code Snippets for major reports).
+    - Section 4: Extraction Methods (Refined comparison table).
+    - Goal: A static, high-quality technical reference manual for developers.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        /* Markdown-like styling for AI output */
-        .ai-content pre {
-            background-color: #f5f5f4;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            overflow-x: auto;
-            font-size: 0.875rem;
-            border: 1px solid #e7e5e4;
-        }
-        .ai-content code {
-            font-family: monospace;
-            color: #dc2626;
-        }
+        /* Custom Scrollbar for code blocks */
+        .code-block::-webkit-scrollbar { height: 8px; }
+        .code-block::-webkit-scrollbar-track { background: #f1f5f9; }
+        .code-block::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .code-block::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Syntax Highlighting Colors */
+        .token-tag { color: #22863a; }
+        .token-attr { color: #6f42c1; }
+        .token-val { color: #032f62; }
+        .token-content { color: #24292e; }
     </style>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        stone: {
-                            50: '#fafaf9',
-                            100: '#f5f5f4',
-                            200: '#e7e5e4',
-                            300: '#d6d3d1',
-                            400: '#a8a29e',
-                            500: '#78716c',
-                            600: '#57534e',
-                            700: '#44403c',
-                            800: '#292524',
-                            900: '#1c1917'
-                        },
-                        blue: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a'
+                        slate: {
+                            850: '#1e293b', // Darker slate for sidebar
                         }
                     }
                 }
@@ -76,528 +46,290 @@
         }
     </script>
 </head>
-<body class="bg-stone-50 text-stone-800 antialiased">
+<body class="bg-white text-slate-800 antialiased flex flex-col md:flex-row min-h-screen">
 
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-            <h1 class="text-xl md:text-2xl font-bold text-blue-700">Tally Data Extraction to SQL</h1>
-            <div class="space-x-4 hidden md:block">
-                <a href="#methods" class="text-sm font-medium text-stone-600 hover:text-blue-600 transition-colors">Methods</a>
-                <a href="#datamodel" class="text-sm font-medium text-stone-600 hover:text-blue-600 transition-colors">Data Model</a>
-                <a href="#recommendation" class="text-sm font-medium text-stone-600 hover:text-blue-600 transition-colors">Recommendation</a>
-            </div>
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 md:h-screen md:sticky md:top-0 overflow-y-auto">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-xl font-bold text-white tracking-tight">Tally<span class="text-blue-500">Extractor</span> Docs</h1>
+            <p class="text-xs text-slate-500 mt-1">Technical Reference v1.2</p>
+        </div>
+        <nav class="p-4 space-y-1">
+            <a href="#overview" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Overview</a>
+            <a href="#master-list" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Master Collections</a>
+            <a href="#transaction-list" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Transaction Types</a>
+            <a href="#code-snippets" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Report XML Snippets</a>
+            <a href="#methods" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Extraction Methods</a>
         </nav>
-    </header>
+    </aside>
 
-    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Main Content -->
+    <main class="flex-1 min-w-0 overflow-hidden">
+        <div class="max-w-5xl mx-auto px-6 py-12 space-y-16">
 
-        <section id="intro" class="mb-16 text-center">
-            <h2 class="text-3xl font-bold text-stone-900 mb-4">Unlock Your Tally Data</h2>
-            <p class="text-lg text-stone-600 max-w-3xl mx-auto">
-                Extracting data from Tally to a SQL database is a common requirement for advanced reporting, business intelligence (BI), and audit purposes. This application explores the methods, data structures, and best practices to build a robust data pipeline.
-            </p>
-        </section>
+            <!-- Overview -->
+            <section id="overview">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Tally Data Extraction Guide</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    This documentation provides a comprehensive list of Tally ERP 9 / Tally Prime objects and standard XML patterns for extracting data to SQL, Power BI, or custom applications. Tally uses a hierarchical object model rather than a relational table structure.
+                </p>
+            </section>
 
-        <section id="methods" class="mb-16 scroll-mt-20">
-            <h3 class="text-2xl font-semibold text-stone-900 mb-6 text-center">1. Ways of Doing It: Comparison of Methods</h3>
-            <p class="text-md text-stone-600 max-w-2xl mx-auto text-center mb-8">
-                There are several established methods to get data out of Tally. Each has distinct advantages and disadvantages depending on your need for real-time data, technical resources, and budget.
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                
-                <div class="bg-white rounded-lg shadow-lg p-6 border border-stone-200 hover:shadow-xl transition-shadow">
-                    <h4 class="text-xl font-bold text-blue-700 mb-3">Tally ODBC Interface</h4>
-                    <p class="text-sm text-stone-600 mb-4">Tally can act as an ODBC Data Source, allowing direct queries from ODBC-compliant applications (like SQL Server, Excel, Power BI).</p>
-                    <div class="mb-3">
-                        <h5 class="font-semibold text-green-600 mb-2">Pros</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Real-time data access (read-only).</li>
-                            <li>Relatively simple to set up for basic queries.</li>
-                            <li>No intermediate files or complex scripts.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h5 class="font-semibold text-red-600 mb-2">Cons</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Very slow for large data volumes (bulk extraction).</li>
-                            <li>Tally application must be open on the host machine.</li>
-                            <li>Limited, SQL-like query language (not full T-SQL).</li>
-                            <li>Can lock Tally, impacting user performance.</li>
-                        </ul>
-                    </div>
+            <!-- Master Lists -->
+            <section id="master-list" class="scroll-mt-12">
+                <div class="border-l-4 border-blue-600 pl-4 mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">1. Master Collections</h3>
+                    <p class="text-slate-500">Static data entities that define the structure of accounts and inventory.</p>
                 </div>
 
-                <div class="bg-white rounded-lg shadow-lg p-6 border border-stone-200 hover:shadow-xl transition-shadow">
-                    <h4 class="text-xl font-bold text-blue-700 mb-3">XML Export & ETL</h4>
-                    <p class="text-sm text-stone-600 mb-4">Tally can export any report or collection as an XML file. An external ETL (Extract, Transform, Load) script is required to parse this XML and load it into SQL.</p>
-                    <div class="mb-3">
-                        <h5 class="font-semibold text-green-600 mb-2">Pros</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Full control over the data transformation logic.</li>
-                            <li>Ideal for full, reliable bulk data extraction.</li>
-                            <li>Can be scheduled and automated (batch process).</li>
-                            <li>Does not lock Tally during the SQL insert process.</li>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Accounting Masters -->
+                    <div class="bg-slate-50 rounded-lg border border-slate-200 p-5">
+                        <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Accounting
+                        </h4>
+                        <ul class="space-y-2 text-sm text-slate-600 font-mono">
+                            <li class="flex justify-between"><span class="font-semibold">Group</span> <span class="text-xs text-slate-400">Hierarchical parent</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Ledger</span> <span class="text-xs text-slate-400">Main account object</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Cost Category</span> <span class="text-xs text-slate-400">Dim 1 container</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Cost Centre</span> <span class="text-xs text-slate-400">Dimension/Tag</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Voucher Type</span> <span class="text-xs text-slate-400">Config definitions</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Currency</span> <span class="text-xs text-slate-400">Multi-currency</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Budget</span> <span class="text-xs text-slate-400">Financial targets</span></li>
                         </ul>
                     </div>
-                    <div>
-                        <h5 class="font-semibold text-red-600 mb-2">Cons</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Not real-time (data is as old as the last export).</li>
-                            <li>Requires development of a robust XML parser.</li>
-                            <li>Handling incremental updates can be complex.</li>
-                        </ul>
-                    </div>
-                </div>
 
-                <div class="bg-white rounded-lg shadow-lg p-6 border border-stone-200 hover:shadow-xl transition-shadow">
-                    <h4 class="text-xl font-bold text-blue-700 mb-3">Tally API (JSON/XML over HTTP)</h4>
-                    <p class="text-sm text-stone-600 mb-4">Tally Prime and Tally.ERP 9 (with TDL) can act as a server, responding to HTTP requests with JSON or XML data. This is the modern, programmatic approach.</p>
-                    <div class="mb-3">
-                        <h5 class="font-semibold text-green-600 mb-2">Pros</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Highly flexible and powerful.</li>
-                            <li>Enables near real-time data synchronization.</li>
-                            <li>Can fetch granular data or large collections.</li>
-                            <li>Supports both read and write (e.g., pushing invoices to Tally).</li>
+                    <!-- Inventory Masters -->
+                    <div class="bg-slate-50 rounded-lg border border-slate-200 p-5">
+                        <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span> Inventory
+                        </h4>
+                        <ul class="space-y-2 text-sm text-slate-600 font-mono">
+                            <li class="flex justify-between"><span class="font-semibold">Stock Group</span> <span class="text-xs text-slate-400">Hierarchy</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Stock Item</span> <span class="text-xs text-slate-400">Product/Service</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Stock Category</span> <span class="text-xs text-slate-400">Parallel hierarchy</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Unit</span> <span class="text-xs text-slate-400">UOM definitions</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Godown</span> <span class="text-xs text-slate-400">Locations/Warehouses</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Batch</span> <span class="text-xs text-slate-400">Lot numbers</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Price List</span> <span class="text-xs text-slate-400">Rate definitions</span></li>
                         </ul>
                     </div>
-                    <div>
-                        <h5 class="font-semibold text-red-600 mb-2">Cons</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Requires development effort and API knowledge.</li>
-                            <li>Tally must be running as a server.</li>
-                            <li>Can be complex to manage collection fetching efficiently.</li>
+
+                    <!-- Payroll & Statutory -->
+                    <div class="bg-slate-50 rounded-lg border border-slate-200 p-5">
+                        <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span> Payroll & Other
+                        </h4>
+                        <ul class="space-y-2 text-sm text-slate-600 font-mono">
+                            <li class="flex justify-between"><span class="font-semibold">Employee Group</span> <span class="text-xs text-slate-400">Dept/Div</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Employee</span> <span class="text-xs text-slate-400">Staff master</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Pay Head</span> <span class="text-xs text-slate-400">Salary components</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Attendance Type</span> <span class="text-xs text-slate-400">Leave definitions</span></li>
+                            <li class="flex justify-between"><span class="font-semibold">Tax Classification</span> <span class="text-xs text-slate-400">GST/VAT Rates</span></li>
                         </ul>
                     </div>
                 </div>
-                
-                <div class="bg-white rounded-lg shadow-lg p-6 border border-stone-200 hover:shadow-xl transition-shadow">
-                    <h4 class="text-xl font-bold text-blue-700 mb-3">Third-Party ETL Tools</h4>
-                    <p class="text-sm text-stone-600 mb-4">Commercial connectors and ETL platforms (e.g., Fivetran, Celigo, custom-built solutions) offer pre-built Tally-to-SQL pipelines.</p>
-                    <div class="mb-3">
-                        <h5 class="font-semibold text-green-600 mb-2">Pros</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Fastest to implement (out-of-the-box solution).</li>
-                            <li>Often handle incremental updates and schema changes.</li>
-                            <li>Professionally supported and maintained.</li>
+            </section>
+
+            <!-- Transaction Lists -->
+            <section id="transaction-list" class="scroll-mt-12">
+                <div class="border-l-4 border-blue-600 pl-4 mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">2. Transactions (Vouchers)</h3>
+                    <p class="text-slate-500">All transactions are stored in the <code class="bg-slate-100 px-1 rounded text-sm">Voucher</code> object. They are differentiated by <code class="bg-slate-100 px-1 rounded text-sm">VoucherTypeName</code>.</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Voucher Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Purpose</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Key Sub-Collections</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200 text-sm">
+                            <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Sales / Sales Order</td>
+                                <td class="px-6 py-4 text-slate-600">Revenue recording, Invoicing.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries, LedgerEntries</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Purchase / Purchase Order</td>
+                                <td class="px-6 py-4 text-slate-600">Procurement, Expense recording.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries, LedgerEntries</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Receipt / Payment</td>
+                                <td class="px-6 py-4 text-slate-600">Bank/Cash inflows and outflows.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">LedgerEntries, BankAllocations</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Journal</td>
+                                <td class="px-6 py-4 text-slate-600">Adjustments, non-cash transactions.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">LedgerEntries</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Contra</td>
+                                <td class="px-6 py-4 text-slate-600">Cash deposit/withdrawal, Fund transfer.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">LedgerEntries</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Debit / Credit Note</td>
+                                <td class="px-6 py-4 text-slate-600">Returns, Rate differences.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries, LedgerEntries</td>
+                            </tr>
+                             <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Stock Journal</td>
+                                <td class="px-6 py-4 text-slate-600">Manufacturing, Transfer of materials.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries (In/Out)</td>
+                            </tr>
+                             <tr>
+                                <td class="px-6 py-4 font-medium text-slate-900">Payroll Voucher</td>
+                                <td class="px-6 py-4 text-slate-600">Salary processing.</td>
+                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">AttendanceEntries, PayHeadEntries</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Code Snippets -->
+            <section id="code-snippets" class="scroll-mt-12">
+                <div class="border-l-4 border-blue-600 pl-4 mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">3. Developer Reference: XML Snippets</h3>
+                    <p class="text-slate-500">Send these XML payloads to Tally's HTTP port (default: <code class="text-xs bg-slate-100 p-1">http://localhost:9000</code>) via POST method to fetch data.</p>
+                </div>
+
+                <!-- Tabs for Snippets -->
+                <div class="mb-4 border-b border-slate-200">
+                    <nav class="-mb-px flex space-x-8" id="snippetTabs">
+                        <button onclick="showSnippet('tb')" class="snippet-tab border-blue-500 text-blue-600 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Trial Balance</button>
+                        <button onclick="showSnippet('daybook')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Daybook (Vouchers)</button>
+                        <button onclick="showSnippet('sql')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Raw SQL Query (ODBC)</button>
+                    </nav>
+                </div>
+
+                <!-- Snippet 1: Trial Balance -->
+                <div id="snip-tb" class="snippet-content">
+                    <p class="text-sm text-slate-600 mb-3">Use this to export the standard "Trial Balance" report structure. This utilizes the <code class="font-mono text-xs">EXPORT</code> method.</p>
+                    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
+<pre class="text-xs font-mono leading-5">
+<span class="token-tag">&lt;ENVELOPE&gt;</span>
+    <span class="token-tag">&lt;HEADER&gt;</span>
+        <span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export Data<span class="token-tag">&lt;/TALLYREQUEST&gt;</span>
+    <span class="token-tag">&lt;/HEADER&gt;</span>
+    <span class="token-tag">&lt;BODY&gt;</span>
+        <span class="token-tag">&lt;EXPORTDATA&gt;</span>
+            <span class="token-tag">&lt;REQUESTDESC&gt;</span>
+                <span class="token-tag">&lt;REPORTNAME&gt;</span>Trial Balance<span class="token-tag">&lt;/REPORTNAME&gt;</span>
+                <span class="token-tag">&lt;STATICVARIABLES&gt;</span>
+                    <span class="token-tag">&lt;SVEXPORTFORMAT&gt;</span>$$SysName:XML<span class="token-tag">&lt;/SVEXPORTFORMAT&gt;</span>
+                <span class="token-tag">&lt;/STATICVARIABLES&gt;</span>
+            <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
+        <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
+    <span class="token-tag">&lt;/BODY&gt;</span>
+<span class="token-tag">&lt;/ENVELOPE&gt;</span>
+</pre>
+                    </div>
+                </div>
+
+                <!-- Snippet 2: Daybook -->
+                <div id="snip-daybook" class="snippet-content hidden">
+                    <p class="text-sm text-slate-600 mb-3">Use this to fetch raw Voucher objects within a specific date range. This is the most common pattern for ETL.</p>
+                    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
+<pre class="text-xs font-mono leading-5">
+<span class="token-tag">&lt;ENVELOPE&gt;</span>
+    <span class="token-tag">&lt;HEADER&gt;</span>
+        <span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export Data<span class="token-tag">&lt;/TALLYREQUEST&gt;</span>
+    <span class="token-tag">&lt;/HEADER&gt;</span>
+    <span class="token-tag">&lt;BODY&gt;</span>
+        <span class="token-tag">&lt;EXPORTDATA&gt;</span>
+            <span class="token-tag">&lt;REQUESTDESC&gt;</span>
+                <span class="token-tag">&lt;REPORTNAME&gt;</span>Voucher Register<span class="token-tag">&lt;/REPORTNAME&gt;</span>
+                <span class="token-tag">&lt;STATICVARIABLES&gt;</span>
+                    <span class="token-tag">&lt;SVFROMDATE&gt;</span>20230401<span class="token-tag">&lt;/SVFROMDATE&gt;</span>
+                    <span class="token-tag">&lt;SVTODATE&gt;</span>20230430<span class="token-tag">&lt;/SVTODATE&gt;</span>
+                    <span class="token-tag">&lt;SVEXPORTFORMAT&gt;</span>$$SysName:XML<span class="token-tag">&lt;/SVEXPORTFORMAT&gt;</span>
+                <span class="token-tag">&lt;/STATICVARIABLES&gt;</span>
+            <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
+        <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
+    <span class="token-tag">&lt;/BODY&gt;</span>
+<span class="token-tag">&lt;/ENVELOPE&gt;</span>
+</pre>
+                    </div>
+                </div>
+
+                <!-- Snippet 3: SQL -->
+                <div id="snip-sql" class="snippet-content hidden">
+                    <p class="text-sm text-slate-600 mb-3">If using the ODBC Driver (Port 9000), you can use standard SQL Select statements. Note: This is slower than XML.</p>
+                    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
+<pre class="text-xs font-mono text-blue-300 leading-5">
+-- Select Ledger Masters
+SELECT $Name, $Parent, $OpeningBalance FROM Ledger
+
+-- Select Vouchers
+SELECT $Date, $VoucherNumber, $PartyLedgerName, $Amount 
+FROM Voucher 
+WHERE $VoucherTypeName = 'Sales'
+</pre>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Methods Comparison -->
+            <section id="methods" class="pb-16 scroll-mt-12">
+                 <div class="border-l-4 border-blue-600 pl-4 mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">4. Extraction Methods</h3>
+                    <p class="text-slate-500">Comparison of available integration architectures.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Method 1 -->
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-slate-800 mb-2">XML over HTTP (Recommended)</h4>
+                        <p class="text-sm text-slate-600 mb-4">The standard for high-volume extraction. Tally acts as a server receiving XML requests.</p>
+                        <ul class="text-xs space-y-1 text-slate-500">
+                            <li>✅ Fast & robust</li>
+                            <li>✅ Full data access</li>
+                            <li>❌ Requires parsing logic</li>
                         </ul>
                     </div>
-                    <div>
-                        <h5 class="font-semibold text-red-600 mb-2">Cons</h5>
-                        <ul class="list-disc list-inside text-sm text-stone-700 space-y-1">
-                            <li>Recurring subscription cost.</li>
-                            <li>May be a "black box" with limited customization.</li>
-                            <li>May not support all custom fields or TDL extensions.</li>
+
+                    <!-- Method 2 -->
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <h4 class="font-bold text-slate-800 mb-2">ODBC Interface</h4>
+                        <p class="text-sm text-slate-600 mb-4">Tally acts as a database driver. Good for ad-hoc queries via Excel/PowerBI.</p>
+                         <ul class="text-xs space-y-1 text-slate-500">
+                            <li>✅ Easy setup (Excel)</li>
+                            <li>❌ Very slow for large data</li>
+                            <li>❌ Limited schema support</li>
                         </ul>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="datamodel" class="mb-16 scroll-mt-20">
-            <h3 class="text-2xl font-semibold text-stone-900 mb-6 text-center">2. Tally Data Model: Masters & Transactions</h3>
-            <p class="text-md text-stone-600 max-w-2xl mx-auto text-center mb-8">
-                Tally does not expose data as SQL "tables." It exposes "Objects" or "Collections." Understanding this structure is critical for mapping your destination schema.
-            </p>
-
-            <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 bg-white p-6 rounded-lg shadow-lg border border-stone-200">
-                <div class="lg:w-1/3">
-                    <div class="flex space-x-2 mb-4">
-                        <button id="showMasters" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 transition-colors">
-                            Explore Masters
-                        </button>
-                        <button id="showTransactions" class="w-full bg-stone-200 text-stone-700 px-4 py-2 rounded-md font-medium hover:bg-stone-300 transition-colors">
-                            Explore Transactions
-                        </button>
-                    </div>
-                    <div id="objectList" class="space-y-2 max-h-96 overflow-y-auto pr-2">
-                    </div>
-                </div>
-                
-                <div class="lg:w-2/3 bg-stone-50 rounded-md border border-stone-200 p-6 min-h-[300px]">
-                    <h4 class="text-xl font-semibold text-stone-800 mb-4 border-b border-stone-300 pb-2">Object Details</h4>
-                    <div id="objectDetails">
-                        <p class="text-stone-500">Select an object type (Masters or Transactions) and then click an object from the list to see its key attributes here.</p>
-                    </div>
-                    <!-- AI Generation Result Container -->
-                    <div id="aiSchemaContainer" class="hidden mt-6 pt-6 border-t border-stone-300">
-                        <div class="flex justify-between items-center mb-2">
-                            <h5 class="text-sm font-bold text-purple-700 uppercase tracking-wide">✨ Generated SQL Schema</h5>
-                            <button onclick="document.getElementById('aiSchemaContainer').classList.add('hidden')" class="text-xs text-stone-500 hover:text-stone-800">Close</button>
-                        </div>
-                        <div id="aiSchemaOutput" class="ai-content text-xs text-stone-700 font-mono bg-stone-100 p-4 rounded border border-stone-200 overflow-x-auto">
-                            <!-- SQL will be injected here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <h4 class="text-xl font-semibold text-stone-900 mt-12 mb-6 text-center">Key Data Relationships</h4>
-            <p class="text-md text-stone-600 max-w-2xl mx-auto text-center mb-8">
-                The most important object is the `Voucher`. It acts as the central hub, linking all accounting and inventory details for a single transaction.
-            </p>
-
-            <div class="w-full max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg border border-stone-200 overflow-x-auto">
-                <div class="flex flex-col items-center min-w-max">
-                    <div class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md">
-                        Voucher Object
-                    </div>
-                    <div class="text-xs text-stone-500">(e.g., Sales Invoice SV-001)</div>
-
-                    <div class="flex w-full mt-4">
-                        <div class="w-1/2 flex justify-end pr-4">
-                            <div class="w-px bg-stone-400 h-8"></div>
-                        </div>
-                        <div class="w-1/2 flex justify-start pl-4">
-                            <div class="w-px bg-stone-400 h-8"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex w-full">
-                        <div class="w-1/2 border-r-2 border-stone-400 h-8"></div>
-                        <div class="w-1/2 border-l-2 border-stone-400 h-8"></div>
-                    </div>
-
-                    <div class="flex w-full justify-around">
-                        <div class="flex flex-col items-center w-1/2">
-                            <div class="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-md border border-blue-300">
-                                AllLedgerEntries
-                            </div>
-                            <div class="text-xs text-stone-500">(The Debits & Credits)</div>
-                            
-                            <div class="w-px bg-stone-400 h-8 mt-4"></div>
-                            
-                            <div class="flex flex-col items-center">
-                                <div class="bg-stone-100 text-stone-700 font-medium py-2 px-4 rounded-md border border-stone-300">
-                                    Ledger (Master)
-                                </div>
-                                <div class="text-xs text-stone-500">(e.g., 'Customer A', 'Sales Account')</div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex flex-col items-center w-1/2">
-                            <div class="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-md border border-blue-300">
-                                InventoryEntries
-                            </div>
-                            <div class="text-xs text-stone-500">(The Stock Items Sold)</div>
-
-                            <div class="w-px bg-stone-400 h-8 mt-4"></div>
-
-                            <div class="flex flex-col items-center">
-                                <div class="bg-stone-100 text-stone-700 font-medium py-2 px-4 rounded-md border border-stone-300">
-                                    StockItem (Master)
-                                </div>
-                                <div class="text-xs text-stone-500">(e.g., 'Laptop Model X')</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <section id="recommendation" class="mb-16 scroll-mt-20">
-            <h3 class="text-2xl font-semibold text-stone-900 mb-6 text-center">3. Recommended Strategy for Reporting & Audit</h3>
-            <p class="text-md text-stone-600 max-w-2xl mx-auto text-center mb-8">
-                For comprehensive reporting and audit use cases, you need a full, reliable, and queryable copy of your data.
-            </p>
-
-            <div class="bg-white rounded-lg shadow-lg p-6 lg:p-8 border border-stone-200 mb-8">
-                <h4 class="text-xl font-bold text-blue-700 mb-6 text-center">The Hybrid ETL Process</h4>
-                <p class="text-stone-600 mb-8 text-center max-w-3xl mx-auto">This two-stage approach provides both a complete historical dataset and efficient daily updates.</p>
-                
-                <div class="w-full max-w-3xl mx-auto space-y-8">
-                    <!-- Visual Process Flow -->
-                    <div class="flex flex-col md:flex-row items-center gap-4">
-                        <div class="bg-stone-700 text-white font-bold py-3 px-6 rounded-lg shadow-md w-full md:w-48 text-center">
-                            Tally
-                        </div>
-                        <div class="flex items-center text-blue-600 font-semibold text-lg md:text-2xl">
-                            <span class="hidden md:inline">&rarr;</span>
-                            <span class="md:hidden text-3xl">&darr;</span>
-                        </div>
-                        <div class="flex-1 bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                            <div class="font-bold text-blue-800">Step 1: Initial Bulk Load</div>
-                            <p class="text-sm text-blue-700">XML Export -> Python/Powershell Parse -> SQL Insert.</p>
-                        </div>
-                         <div class="flex items-center text-blue-600 font-semibold text-lg md:text-2xl">
-                            <span class="hidden md:inline">&rarr;</span>
-                             <span class="md:hidden text-3xl">&darr;</span>
-                        </div>
-                        <div class="bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md w-full md:w-48 text-center">
-                            SQL Database
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI ETL Helper -->
-            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg shadow-lg p-6 border border-purple-200">
-                <div class="text-center mb-6">
-                    <h4 class="text-xl font-bold text-purple-800 flex items-center justify-center gap-2">
-                        <span>✨</span> ETL Script Assistant
-                    </h4>
-                    <p class="text-sm text-purple-700 max-w-xl mx-auto mt-2">
-                        Writing the extraction code can be tricky. Click below to generate a starter Python script that fetches XML from Tally and prepares it for SQL.
-                    </p>
-                </div>
-                <div class="text-center">
-                    <button id="generateScriptBtn" class="bg-purple-600 text-white px-6 py-3 rounded-full font-bold shadow-md hover:bg-purple-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400">
-                        ✨ Generate Python ETL Script
-                    </button>
-                </div>
-                <div id="etlScriptContainer" class="hidden mt-6">
-                    <div class="bg-white p-4 rounded border border-purple-200 shadow-inner">
-                        <div id="etlScriptOutput" class="ai-content text-sm font-mono text-stone-700 whitespace-pre-wrap h-96 overflow-y-auto"></div>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
+        </div>
     </main>
 
-    <footer class="bg-stone-800 text-stone-300 py-6 mt-16">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
-            <p>This is an illustrative application based on common Tally integration patterns.</p>
-            <p class="text-stone-500 mt-2">Powered by Gemini API</p>
-        </div>
-    </footer>
-
     <script>
-        // NOTE: API Key is handled by the environment
-        const apiKey = "";
+        function showSnippet(id) {
+            // Hide all snippets
+            document.querySelectorAll('.snippet-content').forEach(el => el.classList.add('hidden'));
+            // Show selected snippet
+            document.getElementById('snip-' + id).classList.remove('hidden');
 
-        // Global data object to avoid quote escaping issues in HTML attributes
-        window.tallyData = {
-            masters: {
-                'Ledger': [
-                    'Name: (e.g., "Customer A", "Sales Account")',
-                    'Parent: (The Group it belongs to, e.g., "Sundry Debtors")',
-                    'OpeningBalance: (Dr/Cr amount)',
-                    'IsParty: (Yes/No - Is it a customer/supplier?)',
-                    'Address: (Full address details)',
-                    'GUID: (Unique Tally ID)'
-                ],
-                'Group': [
-                    'Name: (e.g., "Sundry Debtors", "Current Assets")',
-                    'Parent: (The parent group)',
-                    'IsRevenue: (Yes/No)',
-                    'IsExpense: (Yes/No)',
-                    'GUID: (Unique Tally ID)'
-                ],
-                'StockItem': [
-                    'Name: (e.g., "Laptop Model X")',
-                    'Parent: (The Stock Group it belongs to)',
-                    'Category: (The Stock Category)',
-                    'BaseUnits: (e.g., "Pcs", "Kgs")',
-                    'OpeningBalance: (Qty, Rate, Amount)',
-                    'GUID: (Unique Tally ID)'
-                ],
-                'CostCentre': [
-                    'Name: (e.g., "Sales Dept", "Project A")',
-                    'Parent: (Parent cost centre)',
-                    'GUID: (Unique Tally ID)'
-                ],
-            },
-            transactions: {
-                'Voucher': [
-                    'Date: (Transaction date)',
-                    'VoucherTypeName: (e.g., "Sales")',
-                    'VoucherNumber: (e.g., "SV-001")',
-                    'PartyLedgerName: (The main customer/supplier)',
-                    'Reference: (e.g., Bill No.)',
-                    'Narration: (User-entered notes)',
-                    'GUID: (Unique Tally ID for the voucher)',
-                    'ALTERID: (A number that increments on modification, crucial for incremental sync)',
-                    'AllLedgerEntries: (Collection of Debit/Credit lines)',
-                ]
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const objectList = document.getElementById('objectList');
-            const objectDetails = document.getElementById('objectDetails');
-            const showMastersBtn = document.getElementById('showMasters');
-            const showTransactionsBtn = document.getElementById('showTransactions');
-            const aiSchemaContainer = document.getElementById('aiSchemaContainer');
-            const aiSchemaOutput = document.getElementById('aiSchemaOutput');
-
-            // Gemini API Call Helper
-            async function callGemini(prompt) {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }]
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error('API call failed');
-                    const result = await response.json();
-                    return result.candidates[0].content.parts[0].text;
-                } catch (error) {
-                    console.error(error);
-                    return "Sorry, I couldn't generate that right now. Please try again.";
-                }
-            }
-
-            // Handler for SQL Generation
-            // Now accepts type and key to lookup attributes safely
-            window.generateSql = async (type, objectName) => {
-                const attributes = window.tallyData[type][objectName];
-                const btn = document.getElementById('generateSqlBtn');
-                const originalText = btn.innerText;
-                btn.innerText = "Generating...";
-                btn.disabled = true;
-                
-                aiSchemaContainer.classList.remove('hidden');
-                aiSchemaOutput.innerText = "Analyzing object structure...";
-
-                const prompt = `
-                You are a database architect specializing in Tally ERP 9 and Tally Prime data extraction.
-                
-                Task: Write a SQL Server (T-SQL) 'CREATE TABLE' script to store data for the Tally object: "${objectName}".
-                
-                Input Attributes (Fields to include):
-                ${attributes.join('\n')}
-                
-                Requirements:
-                1. Use appropriate SQL data types (e.g., NVARCHAR for names, DECIMAL(18,4) for amounts, DATE for dates).
-                2. Add a primary key.
-                3. Include standard ETL columns: 'EtlBatchId' (INT), 'EtlCreatedOn' (DATETIME).
-                4. Provide the code ONLY, inside markdown code blocks. No conversational filler.
-                `;
-
-                const response = await callGemini(prompt);
-                
-                // Simple markdown formatting removal for display
-                const cleanResponse = response.replace(/```sql/g, '').replace(/```/g, '');
-                
-                aiSchemaOutput.innerText = cleanResponse;
-                btn.innerText = originalText;
-                btn.disabled = false;
-            };
-
-            function displayDetails(type, objectName) {
-                const attributes = window.tallyData[type][objectName];
-                if (!attributes) {
-                    objectDetails.innerHTML = '<p class="text-stone-500">Could not find details for this object.</p>';
-                    return;
-                }
-
-                let html = `<div class="flex justify-between items-start">`;
-                html += `<h5 class="text-lg font-bold text-blue-700 mb-3">${objectName}</h5>`;
-                html += `</div>`;
-                
-                html += '<p class="text-sm text-stone-600 mb-4">Key attributes available for extraction:</p>';
-                html += '<ul class="list-disc list-inside space-y-2 text-stone-700 mb-6">';
-                attributes.forEach(attr => {
-                    const parts = attr.split(':');
-                    html += `<li><span class="font-semibold">${parts[0]}</span>: ${parts.slice(1).join(':')}</li>`;
-                });
-                html += '</ul>';
-                
-                // AI Feature Button - Refactored to pass simple strings only
-                html += `<button id="generateSqlBtn" onclick="generateSql('${type}', '${objectName}')" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-purple-200 text-purple-700 font-bold py-2 px-4 rounded-lg hover:bg-purple-50 hover:border-purple-400 transition-colors">`;
-                html += `<span>✨</span> Generate SQL Table Schema for ${objectName}`;
-                html += `</button>`;
-
-                objectDetails.innerHTML = html;
-                aiSchemaContainer.classList.add('hidden'); // Hide previous result
-            }
-
-            function displayObjects(type) {
-                objectList.innerHTML = '';
-                const dataSet = window.tallyData[type]; // Use global data
-                
-                Object.keys(dataSet).forEach(key => {
-                    const button = document.createElement('button');
-                    button.className = 'w-full text-left px-4 py-2 bg-white rounded-md border border-stone-300 text-stone-700 font-medium hover:bg-stone-100 hover:border-blue-500 hover:text-blue-600 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500';
-                    button.textContent = key;
-                    button.onclick = () => {
-                        displayDetails(type, key);
-                        Array.from(objectList.children).forEach(child => child.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700'));
-                        button.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
-                    };
-                    objectList.appendChild(button);
-                });
-            }
-
-            // ETL Script Generator Logic
-            const generateScriptBtn = document.getElementById('generateScriptBtn');
-            const etlScriptContainer = document.getElementById('etlScriptContainer');
-            const etlScriptOutput = document.getElementById('etlScriptOutput');
-
-            generateScriptBtn.addEventListener('click', async () => {
-                const originalText = generateScriptBtn.innerText;
-                generateScriptBtn.innerText = "Writing Script...";
-                generateScriptBtn.disabled = true;
-                etlScriptContainer.classList.remove('hidden');
-                etlScriptOutput.innerText = "Consulting the AI Expert...";
-
-                const prompt = `
-                Write a robust Python script for extracting data from Tally Prime.
-                
-                Scenario:
-                1. Tally is running on 'localhost:9000'.
-                2. We need to extract the 'Ledger' collection.
-                3. The output should be prepared for a SQL Insert (just print the SQL statements for this example).
-                
-                Requirements:
-                - Use the 'requests' library to send XML to Tally.
-                - Use 'xml.etree.ElementTree' to parse the response.
-                - Include a sample Tally XML Request envelope in the code.
-                - Add comments explaining how to handle the 'TallyResponse'.
-                - Keep code clean and concise.
-                `;
-
-                const response = await callGemini(prompt);
-                const cleanResponse = response.replace(/```python/g, '').replace(/```/g, '');
-                
-                etlScriptOutput.innerText = cleanResponse;
-                generateScriptBtn.innerText = originalText;
-                generateScriptBtn.disabled = false;
+            // Reset Tabs
+            document.querySelectorAll('.snippet-tab').forEach(el => {
+                el.classList.remove('border-blue-500', 'text-blue-600');
+                el.classList.add('border-transparent', 'text-slate-500');
             });
-
-
-            showMastersBtn.addEventListener('click', () => {
-                displayObjects('masters');
-                showMastersBtn.classList.add('bg-blue-600', 'text-white');
-                showMastersBtn.classList.remove('bg-stone-200', 'text-stone-700');
-                showTransactionsBtn.classList.add('bg-stone-200', 'text-stone-700');
-                showTransactionsBtn.classList.remove('bg-blue-600', 'text-white');
-                objectDetails.innerHTML = '<p class="text-stone-500">Select a Master object from the list to see its attributes.</p>';
-                aiSchemaContainer.classList.add('hidden');
-            });
-
-            showTransactionsBtn.addEventListener('click', () => {
-                displayObjects('transactions');
-                showTransactionsBtn.classList.add('bg-blue-600', 'text-white');
-                showTransactionsBtn.classList.remove('bg-stone-200', 'text-stone-700');
-                showMastersBtn.classList.add('bg-stone-200', 'text-stone-700');
-                showMastersBtn.classList.remove('bg-blue-600', 'text-white');
-                objectDetails.innerHTML = '<p class="text-stone-500">Select a Transaction object from the list to see its attributes.</p>';
-                aiSchemaContainer.classList.add('hidden');
-            });
-
-            // Init
-            displayObjects('masters');
-            showMastersBtn.classList.add('bg-blue-600', 'text-white');
-            showMastersBtn.classList.remove('bg-stone-200', 'text-stone-700');
             
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    document.querySelector(this.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
-            });
-        });
+            // Activate Tab
+            const activeTab = document.querySelector(`button[onclick="showSnippet('${id}')"]`);
+            activeTab.classList.remove('border-transparent', 'text-slate-500');
+            activeTab.classList.add('border-blue-500', 'text-blue-600');
+        }
     </script>
 </body>
 </html>
