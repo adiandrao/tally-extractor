@@ -61,9 +61,12 @@
             <a href="#datamodel" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Data Model Explorer</a>
             <a href="#odbc-collections" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-blue-400"><i class="fa-solid fa-table-list mr-1"></i> Standard ODBC Tables</a>
             <a href="#xml-collections" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-green-400"><i class="fa-solid fa-file-code mr-1"></i> XML API Collections</a>
-            <a href="#methods" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Extraction Methods</a>
+            
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Discovery</div>
+            <a href="#discovery" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-purple-400"><i class="fa-solid fa-magnifying-glass mr-1"></i> How to Find All Tables</a>
 
             <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Code & Implementation</div>
+            <a href="#methods" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Extraction Methods</a>
             <a href="#developer-ref" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors"><i class="fa-solid fa-code mr-1"></i> Reference & Snippets</a>
             
             <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Architecture</div>
@@ -330,6 +333,65 @@
                             <li>Collection: <strong>List of Companies</strong></li>
                             <li>Report: <strong>Voucher Audit</strong></li>
                         </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 1.8: Schema Discovery (NEW) -->
+            <section id="discovery" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">How to Find All Tables & Fields</h2>
+                    <span class="text-xs font-mono text-purple-700 bg-purple-100 border border-purple-200 px-2 py-1 rounded">Advanced</span>
+                </div>
+                <p class="text-slate-600 mb-6">
+                    Tally has hundreds of internal objects not listed above. Since Tally is customizable, your specific installation might have unique "User Defined Fields" (UDFs) or Collections. Here is how to find them.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Method A: ODBC Discovery -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <i class="fa-brands fa-python text-blue-500"></i> Method A: ODBC Discovery
+                        </h4>
+                        <p class="text-sm text-slate-600 mb-4">
+                            Tally exposes a meta-table called simply <code>Table</code>. Querying this gives you a list of all currently exposed ODBC collections.
+                        </p>
+                        <div class="bg-slate-900 rounded p-4 overflow-x-auto">
+<pre class="text-xs font-mono leading-5 code-bg">
+<span class="token-keyword">import</span> pyodbc
+
+<span class="token-comment"># 1. Connect</span>
+conn = pyodbc.connect(<span class="token-string">"Driver={Tally ODBC Driver};Server=localhost;Port=9000;"</span>)
+cursor = conn.cursor()
+
+<span class="token-comment"># 2. List all tables</span>
+cursor.execute(<span class="token-string">"SELECT $Name FROM Table"</span>)
+tables = cursor.fetchall()
+
+<span class="token-func">print</span>(f<span class="token-string">"Found {len(tables)} tables:"</span>)
+<span class="token-keyword">for</span> t <span class="token-keyword">in</span> tables:
+    <span class="token-func">print</span>(f<span class="token-string">"- {t[0]}"</span>)
+</pre>
+                        </div>
+                    </div>
+
+                    <!-- Method B: Tally Developer -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-toolbox text-purple-500"></i> Method B: Tally.Developer 9
+                        </h4>
+                        <p class="text-sm text-slate-600 mb-4">
+                            The official development environment (IDE) for Tally. It contains a powerful "Schema Browser".
+                        </p>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                            <li>Download <strong>Tally.Developer 9</strong> (Free from Tally Solutions).</li>
+                            <li>Go to <strong>Tools > Schema Browser</strong>.</li>
+                            <li>Search for "Voucher" or "Ledger".</li>
+                            <li>It lists <strong>every single Method (Field)</strong> available, including internal calculation methods and UDFs.</li>
+                        </ol>
+                        <div class="mt-4 p-3 bg-purple-50 text-purple-800 text-xs rounded border border-purple-100">
+                            <strong>Why use this?</strong> It's the only way to find the exact TDL name for custom fields (e.g., <code>_MyCustomField</code>) added by your Tally partner.
+                        </div>
                     </div>
                 </div>
             </section>
