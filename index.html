@@ -3,39 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tally Prime to SQL Server: Enterprise Architecture</title>
+    <title>Tally Prime to SQL Server: Architecture & Reference</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <!-- 
-    Enterprise Data Integration Architecture Guide
-    Based on Technical Note: "The Imperative for Centralized Financial Intelligence"
     
-    Key Updates:
-    1. Added "The Paradox" section (Object vs Relational).
-    2. ODBC Section: Added detailed schema mapping tables.
-    3. XML Section: Highlighted TDL Injection as the "Killer Feature".
-    4. Audit Section: Added Edit Log / Version History extraction strategy.
-    5. Design: Clean, sidebar-driven technical documentation layout.
-    -->
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
         
-        h1, h2, h3, h4 { letter-spacing: -0.025em; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Syntax Highlighting for XML/SQL */
+        /* Syntax Highlighting */
         .code-bg { background-color: #0f172a; color: #e2e8f0; }
-        .token-tag { color: #7dd3fc; } /* light blue */
-        .token-attr { color: #c4b5fd; } /* violet */
-        .token-val { color: #86efac; } /* green */
+        .token-tag { color: #7dd3fc; } 
+        .token-attr { color: #c4b5fd; } 
+        .token-val { color: #86efac; } 
         .token-comment { color: #64748b; font-style: italic; }
-        .token-keyword { color: #f472b6; } /* pink */
-
-        /* Smooth Scroll behavior */
-        html { scroll-behavior: smooth; }
+        .token-keyword { color: #f472b6; }
+        .token-string { color: #86efac; }
+        .token-func { color: #60a5fa; }
         
-        /* Sidebar active state */
+        /* Custom Scrollbar */
+        .code-block::-webkit-scrollbar { height: 8px; }
+        .code-block::-webkit-scrollbar-track { background: #1e293b; }
+        .code-block::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        html { scroll-behavior: smooth; }
         .nav-link.active { background-color: #1e293b; color: #60a5fa; border-right: 3px solid #60a5fa; }
     </style>
     <script>
@@ -43,8 +36,7 @@
             theme: {
                 extend: {
                     colors: {
-                        slate: { 850: '#1e293b', 900: '#0f172a' },
-                        tally: { gold: '#f59e0b', teal: '#14b8a6' }
+                        slate: { 850: '#1e293b', 900: '#0f172a' }
                     }
                 }
             }
@@ -63,26 +55,24 @@
             <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Tally to SQL Pipeline</p>
         </div>
         <nav class="p-4 space-y-1 text-sm font-medium">
-            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-2">Context</div>
-            <a href="#paradox" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">The Object-Relational Paradox</a>
-            <a href="#star-schema" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Target Star Schema</a>
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-2">Fundamentals</div>
+            <a href="#paradox" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">The Object Paradox</a>
+            <a href="#methods" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Extraction Methods</a>
 
-            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Extraction Methods</div>
-            <a href="#odbc" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Method A: ODBC (The Basics)</a>
-            <a href="#xml-api" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Method B: XML & TDL Injection</a>
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Code & Implementation</div>
+            <a href="#developer-ref" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-blue-400"><i class="fa-solid fa-code mr-1"></i> Reference & Snippets</a>
             
-            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Compliance & Strategy</div>
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Architecture</div>
+            <a href="#star-schema" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Target Star Schema</a>
             <a href="#audit-log" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-amber-500"><i class="fa-solid fa-shield-halved mr-1"></i> Audit Trail (Edit Log)</a>
-            <a href="#etl-strategy" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">ETL Lifecycle & Incremental</a>
         </nav>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 min-w-0 overflow-y-auto">
-        <!-- Header -->
         <header class="bg-white border-b border-slate-200 px-8 py-6 sticky top-0 z-10 bg-opacity-95 backdrop-blur">
-            <h1 class="text-2xl font-bold text-slate-900">Enterprise Data Integration Architecture</h1>
-            <p class="text-slate-500 mt-1">Migrating from Tally's OODBMS to Microsoft SQL Server for Centralized Intelligence</p>
+            <h1 class="text-2xl font-bold text-slate-900">Enterprise Data Integration Reference</h1>
+            <p class="text-slate-500 mt-1">Technical Blueprint for Tally Prime to SQL Server Migration</p>
         </header>
 
         <div class="max-w-5xl mx-auto px-8 py-12 space-y-20">
@@ -90,87 +80,85 @@
             <!-- Section 1: The Paradox -->
             <section id="paradox" class="scroll-mt-32">
                 <div class="flex items-center gap-3 mb-6">
-                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Architectural Challenge</span>
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Concept</span>
                     <h2 class="text-3xl font-bold text-slate-900">The Object-Relational Paradox</h2>
                 </div>
                 <p class="text-lg text-slate-600 mb-8 leading-relaxed">
-                    The impedance mismatch between Tally's hierarchical Object-Oriented Database Management System (OODBMS) and SQL Server's relational model is the primary engineering hurdle. Tally data is encapsulated in recursive "Objects" (Collections), whereas SQL requires normalized "Tables".
+                    The impedance mismatch between Tally's OODBMS and SQL's Relational model is the primary hurdle. Tally uses recursive objects; SQL uses normalized tables.
                 </p>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                    <!-- Tally Side -->
                     <div class="bg-slate-50 p-8 border-b md:border-b-0 md:border-r border-slate-200">
-                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-layer-group text-orange-500"></i> Tally Object Model (TOM)
-                        </h3>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Hierarchical:</strong> Vouchers contain LedgerEntries, which contain BillAllocations.</span></li>
-                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Polymorphic:</strong> A Sales Voucher and Payment Voucher share the "Voucher" ID but have completely different fields.</span></li>
-                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Methods ($):</strong> Attributes are accessed via methods like <code class="bg-slate-200 px-1 rounded text-xs">$OpeningBalance</code>.</span></li>
+                        <h3 class="font-bold text-slate-800 mb-4"><i class="fa-solid fa-layer-group text-orange-500 mr-2"></i>Tally Object Model</h3>
+                        <ul class="text-sm text-slate-600 space-y-2">
+                            <li>• <strong>Hierarchical:</strong> Objects nested indefinitely.</li>
+                            <li>• <strong>Polymorphic:</strong> Flexible schemas.</li>
                         </ul>
                     </div>
-                    <!-- SQL Side -->
                     <div class="bg-white p-8">
-                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-table text-blue-600"></i> SQL Relational Model
-                        </h3>
-                         <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Normalized:</strong> Data must be exploded into Header, Line Items, and Allocations tables.</span></li>
-                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Strict Schema:</strong> Columns must be defined (DECIMAL, NVARCHAR) and cannot vary row-by-row.</span></li>
-                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Flattened:</strong> Hierarchies must be resolved into Foreign Key relationships.</span></li>
+                        <h3 class="font-bold text-slate-800 mb-4"><i class="fa-solid fa-table text-blue-600 mr-2"></i>SQL Relational Model</h3>
+                        <ul class="text-sm text-slate-600 space-y-2">
+                            <li>• <strong>Normalized:</strong> Strict Table/Row structure.</li>
+                            <li>• <strong>Flattened:</strong> Requires strict types.</li>
                         </ul>
                     </div>
                 </div>
             </section>
 
-            <!-- Section 2: Method A (ODBC) -->
-            <section id="odbc" class="scroll-mt-32 border-t border-slate-100 pt-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-4">Method A: The ODBC Interface</h2>
-                <p class="text-slate-600 mb-6">
-                    The synchronous pathway. Tally acts as an ODBC Server (Port 9000). Suitable for ad-hoc queries but suffers from the "Cartesian Product" explosion during flattening and blocks the Tally UI.
-                </p>
-
-                <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm mb-8">
-                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-700 text-sm uppercase">Table 1: Standard Ledger Schema</h3>
-                        <span class="text-xs text-slate-500">Partial Mapping</span>
+            <!-- Section 2: Methods Comparison -->
+            <section id="methods" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                 <h2 class="text-2xl font-bold text-slate-900 mb-6">Extraction Methods Comparison</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Method 1 -->
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white">
+                        <h4 class="font-bold text-slate-800 mb-2 flex justify-between">
+                            XML over HTTP (API)
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded uppercase">Recommended</span>
+                        </h4>
+                        <p class="text-sm text-slate-600 mb-4">Tally acts as a web server accepting XML POST requests. Supports TDL Injection.</p>
+                        <ul class="text-xs space-y-2 text-slate-500">
+                            <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Full Data Access (Audit Log, UDFs)</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Asynchronous & Scalable</li>
+                            <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Zero-footprint (No client install)</li>
+                        </ul>
                     </div>
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead class="bg-white">
-                            <tr>
-                                <th class="px-6 py-3 text-left font-medium text-slate-500">ODBC Field ($)</th>
-                                <th class="px-6 py-3 text-left font-medium text-slate-500">Description</th>
-                                <th class="px-6 py-3 text-left font-medium text-slate-500">SQL Target Type</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200">
-                            <tr><td class="px-6 py-3 font-mono text-slate-700">$Name</td><td class="px-6 py-3">Unique Identifier (PK)</td><td class="px-6 py-3 font-mono text-blue-600">NVARCHAR(255)</td></tr>
-                            <tr><td class="px-6 py-3 font-mono text-slate-700">$Parent</td><td class="px-6 py-3">Group Hierarchy</td><td class="px-6 py-3 font-mono text-blue-600">NVARCHAR(255)</td></tr>
-                            <tr><td class="px-6 py-3 font-mono text-slate-700">$ClosingBalance</td><td class="px-6 py-3">Computed Balance</td><td class="px-6 py-3 font-mono text-blue-600">DECIMAL(18,2)</td></tr>
-                            <tr><td class="px-6 py-3 font-mono text-slate-700">$Partygstin</td><td class="px-6 py-3">GST Number</td><td class="px-6 py-3 font-mono text-blue-600">NVARCHAR(20)</td></tr>
-                        </tbody>
-                    </table>
+
+                    <!-- Method 2 -->
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow bg-white">
+                        <h4 class="font-bold text-slate-800 mb-2">ODBC Interface</h4>
+                        <p class="text-sm text-slate-600 mb-4">Tally acts as a database driver. Good for ad-hoc Excel queries or simple Python scripts.</p>
+                         <ul class="text-xs space-y-2 text-slate-500">
+                            <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Easy setup for simple tools</li>
+                            <li class="flex items-center"><i class="fa-solid fa-xmark text-red-500 mr-2"></i> Very slow (Single threaded blocking)</li>
+                            <li class="flex items-center"><i class="fa-solid fa-xmark text-red-500 mr-2"></i> No JOIN support in driver</li>
+                        </ul>
+                    </div>
                 </div>
             </section>
 
-            <!-- Section 3: XML & TDL Injection -->
-            <section id="xml-api" class="scroll-mt-32 border-t border-slate-100 pt-16">
+            <!-- Section 3: Developer Reference (Snippets) -->
+            <section id="developer-ref" class="scroll-mt-32 border-t border-slate-100 pt-16">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-slate-900">Method B: XML API & <span class="text-blue-600">TDL Injection</span></h2>
-                    <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wide border border-green-200">The Killer Feature</span>
+                    <h2 class="text-2xl font-bold text-slate-900">Developer Reference: Integration Snippets</h2>
+                    <span class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">Port: 9000</span>
                 </div>
-                
-                <p class="text-slate-600 mb-6">
-                    The superior methodology for Data Warehousing. Unlike ODBC, it allows <strong class="text-slate-900">TDL Injection</strong>—the ability to send temporary TDL definitions inside the request payload. This enables a "Zero Footprint" extraction (no TCP files needed on client machines) and creates custom, optimized collections on the fly.
-                </p>
 
-                <!-- Code Example -->
-                <div class="bg-slate-900 rounded-xl shadow-2xl overflow-hidden my-8">
-                    <div class="bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-700">
-                        <span class="text-xs text-slate-400 font-mono">POST http://localhost:9000/</span>
-                        <span class="text-xs text-slate-500">XML Payload with Injection</span>
+                <!-- Tabs -->
+                <div class="mb-4 border-b border-slate-200">
+                    <nav class="-mb-px flex space-x-8" id="snippetTabs">
+                        <button onclick="showSnippet('tdl-injection')" class="snippet-tab border-blue-500 text-blue-600 whitespace-nowrap pb-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-500"></i> TDL Injection (Killer Feature)</button>
+                        <button onclick="showSnippet('odbc')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2"><i class="fa-brands fa-python"></i> ODBC / Python</button>
+                        <button onclick="showSnippet('tb')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">XML: Trial Balance</button>
+                        <button onclick="showSnippet('daybook')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">XML: Daybook</button>
+                    </nav>
+                </div>
+
+                <!-- Snippet: TDL Injection (The Killer Feature) -->
+                <div id="snip-tdl-injection" class="snippet-content">
+                    <div class="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-4">
+                        <h4 class="font-bold text-blue-800 text-sm mb-1">Why is this the Killer Feature?</h4>
+                        <p class="text-xs text-blue-700">It allows you to define a temporary "Collection" optimized for SQL extraction <em>inside</em> the request. You don't need to install TCP files on the client's Tally machine. It supports <strong>Eager Loading</strong> (<code class="font-mono">FETCH</code>) to speed up extraction by 50x.</p>
                     </div>
-                    <div class="p-6 overflow-x-auto">
+                    <div class="bg-slate-900 rounded-lg p-6 overflow-x-auto code-block shadow-inner">
 <pre class="text-sm font-mono leading-6 code-bg">
 <span class="token-tag">&lt;ENVELOPE&gt;</span>
     <span class="token-tag">&lt;HEADER&gt;</span><span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export<span class="token-tag">&lt;/TALLYREQUEST&gt;</span><span class="token-tag">&lt;/HEADER&gt;</span>
@@ -184,17 +172,27 @@
             <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
         <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
         
-        <span class="token-comment">&lt;!-- TDL INJECTION: DEFINING A TEMPORARY COLLECTION --&gt;</span>
+        <span class="token-comment">&lt;!-- DYNAMIC TDL INJECTION START --&gt;</span>
         <span class="token-tag">&lt;TDL&gt;</span>
             <span class="token-tag">&lt;TDLMESSAGE&gt;</span>
                 <span class="token-tag">&lt;REPORT NAME="CustomVoucherReport"&gt;</span>
                     <span class="token-tag">&lt;FORMS&gt;</span>CustomVoucherForm<span class="token-tag">&lt;/FORMS&gt;</span>
                 <span class="token-tag">&lt;/REPORT&gt;</span>
-                <span class="token-tag">&lt;!-- ... Form and Part definitions skipped for brevity ... --&gt;</span>
+                <span class="token-tag">&lt;FORM NAME="CustomVoucherForm"&gt;</span>
+                    <span class="token-tag">&lt;PARTS&gt;</span>CustomVoucherPart<span class="token-tag">&lt;/PARTS&gt;</span>
+                <span class="token-tag">&lt;/FORM&gt;</span>
+                <span class="token-tag">&lt;PART NAME="CustomVoucherPart"&gt;</span>
+                    <span class="token-tag">&lt;LINES&gt;</span>CustomVoucherLine<span class="token-tag">&lt;/LINES&gt;</span>
+                    <span class="token-tag">&lt;REPEAT&gt;</span>CustomVoucherLine : MySQL_Voucher_Collection<span class="token-tag">&lt;/REPEAT&gt;</span>
+                    <span class="token-tag">&lt;SCROLLED&gt;</span>Vertical<span class="token-tag">&lt;/SCROLLED&gt;</span>
+                <span class="token-tag">&lt;/PART&gt;</span>
+                <span class="token-tag">&lt;LINE NAME="CustomVoucherLine"&gt;</span>
+                    <span class="token-tag">&lt;FIELDS&gt;</span>XML_VchNo, XML_Amount<span class="token-tag">&lt;/FIELDS&gt;</span>
+                <span class="token-tag">&lt;/LINE&gt;</span>
                 
+                <span class="token-tag">&lt;!-- Temporary Collection Definition --&gt;</span>
                 <span class="token-tag">&lt;COLLECTION NAME="MySQL_Voucher_Collection"&gt;</span>
                     <span class="token-tag">&lt;TYPE&gt;</span>Voucher<span class="token-tag">&lt;/TYPE&gt;</span>
-                    <span class="token-tag">&lt;!-- EAGER LOAD specific fields to optimize performance --&gt;</span>
                     <span class="token-tag">&lt;FETCH&gt;</span>Date, VoucherNumber, Amount, AllLedgerEntries<span class="token-tag">&lt;/FETCH&gt;</span>
                 <span class="token-tag">&lt;/COLLECTION&gt;</span>
             <span class="token-tag">&lt;/TDLMESSAGE&gt;</span>
@@ -205,65 +203,113 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                        <h4 class="font-bold text-blue-800 mb-2 text-sm uppercase">Zero Deployment</h4>
-                        <p class="text-xs text-slate-600">No need to restart Tally or copy .tcp files. The extraction logic lives in your python/C# script.</p>
-                    </div>
-                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                        <h4 class="font-bold text-blue-800 mb-2 text-sm uppercase">Eager Loading</h4>
-                        <p class="text-xs text-slate-600">Using <code class="mono">FETCH</code> prevents lazy-loading, speeding up bulk export by 10-50x.</p>
-                    </div>
-                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
-                        <h4 class="font-bold text-purple-800 mb-2 text-sm uppercase">JSON Support (Rel 4.0)</h4>
-                        <p class="text-xs text-slate-600">Newer Tally versions support JSON response formats for easier parsing in Node/Python.</p>
+                <!-- Snippet: ODBC / Python -->
+                <div id="snip-odbc" class="snippet-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-sm text-slate-600 mb-2 font-bold">Python Extraction Script</p>
+                            <p class="text-xs text-slate-500 mb-3">Requires <code class="bg-slate-100 p-1 rounded">pip install pyodbc</code>. Tally must be open.</p>
+                            <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
+<pre class="text-sm font-mono leading-6 code-bg">
+<span class="token-keyword">import</span> pyodbc
+
+<span class="token-comment"># Connect to Tally ODBC (Default Port 9000)</span>
+conn_str = <span class="token-string">"Driver={Tally ODBC Driver};Server=localhost;Port=9000;"</span>
+conn = pyodbc.connect(conn_str)
+cursor = conn.cursor()
+
+<span class="token-comment"># Execute Query</span>
+<span class="token-comment"># Note: Tally fields start with $</span>
+query = <span class="token-string">"""
+    SELECT $Name, $ClosingBalance 
+    FROM Ledger 
+    WHERE $Parent = 'Sundry Debtors'
+"""</span>
+
+cursor.execute(query)
+rows = cursor.fetchall()
+
+<span class="token-keyword">for</span> row <span class="token-keyword">in</span> rows:
+    <span class="token-func">print</span>(f<span class="token-string">"Ledger: {row[0]}, Bal: {row[1]}"</span>)
+
+conn.close()
+</pre>
+                            </div>
+                        </div>
+                        <div>
+                             <p class="text-sm text-slate-600 mb-2 font-bold">Supported SQL Syntax</p>
+                             <div class="bg-white border border-slate-200 rounded p-4 text-sm space-y-4">
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Basic Select</span>
+                                    <code class="block bg-slate-100 p-2 rounded text-slate-700 font-mono text-xs">SELECT $Name, $Parent FROM Ledger</code>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Filtering</span>
+                                    <code class="block bg-slate-100 p-2 rounded text-slate-700 font-mono text-xs">SELECT * FROM Voucher WHERE $VoucherTypeName = 'Sales'</code>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-red-500 uppercase mb-1">⚠️ Limitations</span>
+                                    <ul class="list-disc list-inside text-xs text-slate-600">
+                                        <li><strong>NO JOINs:</strong> You cannot JOIN tables in Tally ODBC.</li>
+                                        <li><strong>NO GROUP BY:</strong> Aggregations must be done in Python/SQL.</li>
+                                        <li><strong>Blocking:</strong> Long queries will freeze the Tally UI.</li>
+                                    </ul>
+                                </div>
+                             </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Snippet: Trial Balance -->
+                <div id="snip-tb" class="snippet-content hidden">
+                    <p class="text-sm text-slate-600 mb-3">Standard Trial Balance export using built-in reports.</p>
+                    <div class="bg-slate-900 rounded-lg p-6 overflow-x-auto code-block shadow-inner">
+<pre class="text-sm font-mono leading-6 code-bg">
+<span class="token-tag">&lt;ENVELOPE&gt;</span>
+    <span class="token-tag">&lt;HEADER&gt;</span><span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export Data<span class="token-tag">&lt;/TALLYREQUEST&gt;</span><span class="token-tag">&lt;/HEADER&gt;</span>
+    <span class="token-tag">&lt;BODY&gt;</span>
+        <span class="token-tag">&lt;EXPORTDATA&gt;</span>
+            <span class="token-tag">&lt;REQUESTDESC&gt;</span>
+                <span class="token-tag">&lt;REPORTNAME&gt;</span>Trial Balance<span class="token-tag">&lt;/REPORTNAME&gt;</span>
+                <span class="token-tag">&lt;STATICVARIABLES&gt;</span>
+                    <span class="token-tag">&lt;SVEXPORTFORMAT&gt;</span>$$SysName:XML<span class="token-tag">&lt;/SVEXPORTFORMAT&gt;</span>
+                <span class="token-tag">&lt;/STATICVARIABLES&gt;</span>
+            <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
+        <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
+    <span class="token-tag">&lt;/BODY&gt;</span>
+<span class="token-tag">&lt;/ENVELOPE&gt;</span>
+</pre>
+                    </div>
+                </div>
+
+                <!-- Snippet: Daybook -->
+                <div id="snip-daybook" class="snippet-content hidden">
+                    <p class="text-sm text-slate-600 mb-3">Extracting vouchers by date range.</p>
+                    <div class="bg-slate-900 rounded-lg p-6 overflow-x-auto code-block shadow-inner">
+<pre class="text-sm font-mono leading-6 code-bg">
+<span class="token-tag">&lt;ENVELOPE&gt;</span>
+    <span class="token-tag">&lt;HEADER&gt;</span><span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export Data<span class="token-tag">&lt;/TALLYREQUEST&gt;</span><span class="token-tag">&lt;/HEADER&gt;</span>
+    <span class="token-tag">&lt;BODY&gt;</span>
+        <span class="token-tag">&lt;EXPORTDATA&gt;</span>
+            <span class="token-tag">&lt;REQUESTDESC&gt;</span>
+                <span class="token-tag">&lt;REPORTNAME&gt;</span>Voucher Register<span class="token-tag">&lt;/REPORTNAME&gt;</span>
+                <span class="token-tag">&lt;STATICVARIABLES&gt;</span>
+                    <span class="token-tag">&lt;SVFROMDATE&gt;</span>20230401<span class="token-tag">&lt;/SVFROMDATE&gt;</span>
+                    <span class="token-tag">&lt;SVTODATE&gt;</span>20230430<span class="token-tag">&lt;/SVTODATE&gt;</span>
+                    <span class="token-tag">&lt;SVEXPORTFORMAT&gt;</span>$$SysName:XML<span class="token-tag">&lt;/SVEXPORTFORMAT&gt;</span>
+                <span class="token-tag">&lt;/STATICVARIABLES&gt;</span>
+            <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
+        <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
+    <span class="token-tag">&lt;/BODY&gt;</span>
+<span class="token-tag">&lt;/ENVELOPE&gt;</span>
+</pre>
+                    </div>
+                </div>
+
             </section>
 
-            <!-- Section 4: Audit Log -->
-            <section id="audit-log" class="scroll-mt-32 border-t border-slate-100 pt-16">
-                <div class="flex items-center gap-3 mb-6">
-                    <i class="fa-solid fa-gavel text-amber-500 text-2xl"></i>
-                    <h2 class="text-2xl font-bold text-slate-900">Audit Trail & Compliance (Edit Log)</h2>
-                </div>
-                <p class="text-slate-600 mb-6">
-                    Mandated by the MCA for specific classes of companies. Tally Prime Release 2.1+ tracks the history of all changes. Extraction requires accessing deep version details.
-                </p>
-
-                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
-                    <h3 class="font-bold text-slate-800 mb-4">Forensic Fields to Extract</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
-                        <div class="flex justify-between border-b border-slate-100 pb-2">
-                            <span class="font-mono text-slate-600 text-sm">$CreatedBy</span>
-                            <span class="text-slate-500 text-sm">User who made the entry</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-100 pb-2">
-                            <span class="font-mono text-slate-600 text-sm">$CreatedDate</span>
-                            <span class="text-slate-500 text-sm">Timestamp of creation</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-100 pb-2">
-                            <span class="font-mono text-slate-600 text-sm">$AlteredBy</span>
-                            <span class="text-slate-500 text-sm">User who last modified</span>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-100 pb-2">
-                            <span class="font-mono text-slate-600 text-sm">$AlteredOn</span>
-                            <span class="text-slate-500 text-sm">Timestamp of modification</span>
-                        </div>
-                         <div class="flex justify-between border-b border-slate-100 pb-2 col-span-full">
-                            <span class="font-mono text-slate-600 text-sm">$Action</span>
-                            <span class="text-slate-500 text-sm">Type: <span class="text-green-600 font-bold">Create</span>, <span class="text-blue-600 font-bold">Alter</span>, <span class="text-red-600 font-bold">Delete</span></span>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 bg-amber-50 p-4 rounded border border-amber-100 text-sm text-amber-800">
-                        <strong>⚠️ Handling Deletions:</strong> Deleted vouchers disappear from standard reports. You must query the specific "Deleted Vouchers" collection or track "Gaps" in Master IDs in your SQL warehouse to maintain a true audit log.
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section 5: ETL Strategy -->
-            <section id="etl-strategy" class="scroll-mt-32 border-t border-slate-100 pt-16 pb-32">
+            <!-- Section 4: Star Schema -->
+            <section id="star-schema" class="scroll-mt-32 border-t border-slate-100 pt-16">
                 <h2 class="text-2xl font-bold text-slate-900 mb-6">Target Star Schema & ETL Strategy</h2>
                 
                 <div class="space-y-8">
@@ -306,11 +352,67 @@
                 </div>
             </section>
 
+            <!-- Section 5: Audit Log -->
+            <section id="audit-log" class="scroll-mt-32 border-t border-slate-100 pt-16 pb-32">
+                <div class="flex items-center gap-3 mb-6">
+                    <i class="fa-solid fa-gavel text-amber-500 text-2xl"></i>
+                    <h2 class="text-2xl font-bold text-slate-900">Audit Trail & Compliance (Edit Log)</h2>
+                </div>
+                <p class="text-slate-600 mb-6">
+                    Mandated by the MCA. Tally Prime Release 2.1+ tracks the history of all changes. Extraction requires accessing deep version details using the XML API.
+                </p>
+
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                    <h3 class="font-bold text-slate-800 mb-4">Forensic Fields to Extract</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$CreatedBy</span>
+                            <span class="text-slate-500 text-sm">User who made the entry</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$CreatedDate</span>
+                            <span class="text-slate-500 text-sm">Timestamp of creation</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$AlteredBy</span>
+                            <span class="text-slate-500 text-sm">User who last modified</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$AlteredOn</span>
+                            <span class="text-slate-500 text-sm">Timestamp of modification</span>
+                        </div>
+                         <div class="flex justify-between border-b border-slate-100 pb-2 col-span-full">
+                            <span class="font-mono text-slate-600 text-sm">$Action</span>
+                            <span class="text-slate-500 text-sm">Type: <span class="text-green-600 font-bold">Create</span>, <span class="text-blue-600 font-bold">Alter</span>, <span class="text-red-600 font-bold">Delete</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 bg-amber-50 p-4 rounded border border-amber-100 text-sm text-amber-800">
+                        <strong>⚠️ Handling Deletions:</strong> Deleted vouchers disappear from standard reports. You must query the specific "Deleted Vouchers" collection or track "Gaps" in Master IDs in your SQL warehouse.
+                    </div>
+                </div>
+            </section>
+
         </div>
     </main>
 
     <script>
-        // Simple ScrollSpy for Sidebar Highlighting
+        // Tab Logic for XML Snippets
+        function showSnippet(id) {
+            document.querySelectorAll('.snippet-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('snip-' + id).classList.remove('hidden');
+
+            document.querySelectorAll('.snippet-tab').forEach(el => {
+                el.classList.remove('border-blue-500', 'text-blue-600');
+                el.classList.add('border-transparent', 'text-slate-500');
+            });
+            
+            const activeTab = document.querySelector(`button[onclick="showSnippet('${id}')"]`);
+            activeTab.classList.remove('border-transparent', 'text-slate-500');
+            activeTab.classList.add('border-blue-500', 'text-blue-600');
+        }
+
+        // ScrollSpy for Sidebar
         window.addEventListener('scroll', () => {
             const sections = document.querySelectorAll('section');
             const navLinks = document.querySelectorAll('.nav-link');
