@@ -3,308 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tally Data Extraction Reference</title>
+    <title>Tally Prime to SQL Server: Enterprise Architecture</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chosen Palette: Enterprise Blue & Slate. Clean, high contrast, readable. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <!-- 
-    Application Structure Plan:
-    - Layout: Sidebar navigation (sticky on desktop) + Main Content Area.
-    - Section 1: Overview (Brief context).
-    - Section 2: Object Library (Categorized list of all Tally Masters/Transactions).
-    - Section 3: Report Integration (Static XML Code Snippets for major reports).
-    - Section 4: Extraction Methods (Refined comparison table).
-    - Goal: A static, high-quality technical reference manual for developers.
+    Enterprise Data Integration Architecture Guide
+    Based on Technical Note: "The Imperative for Centralized Financial Intelligence"
+    
+    Key Updates:
+    1. Added "The Paradox" section (Object vs Relational).
+    2. ODBC Section: Added detailed schema mapping tables.
+    3. XML Section: Highlighted TDL Injection as the "Killer Feature".
+    4. Audit Section: Added Edit Log / Version History extraction strategy.
+    5. Design: Clean, sidebar-driven technical documentation layout.
     -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
         
-        /* Custom Scrollbar for code blocks */
-        .code-block::-webkit-scrollbar { height: 8px; }
-        .code-block::-webkit-scrollbar-track { background: #f1f5f9; }
-        .code-block::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .code-block::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        h1, h2, h3, h4 { letter-spacing: -0.025em; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Syntax Highlighting for XML/SQL */
+        .code-bg { background-color: #0f172a; color: #e2e8f0; }
+        .token-tag { color: #7dd3fc; } /* light blue */
+        .token-attr { color: #c4b5fd; } /* violet */
+        .token-val { color: #86efac; } /* green */
+        .token-comment { color: #64748b; font-style: italic; }
+        .token-keyword { color: #f472b6; } /* pink */
 
-        /* Syntax Highlighting Colors */
-        .token-tag { color: #22863a; }
-        .token-attr { color: #6f42c1; }
-        .token-val { color: #032f62; }
-        .token-content { color: #24292e; }
+        /* Smooth Scroll behavior */
+        html { scroll-behavior: smooth; }
+        
+        /* Sidebar active state */
+        .nav-link.active { background-color: #1e293b; color: #60a5fa; border-right: 3px solid #60a5fa; }
     </style>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        slate: {
-                            850: '#1e293b', // Darker slate for sidebar
-                        }
+                        slate: { 850: '#1e293b', 900: '#0f172a' },
+                        tally: { gold: '#f59e0b', teal: '#14b8a6' }
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-white text-slate-800 antialiased flex flex-col md:flex-row min-h-screen">
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col lg:flex-row min-h-screen">
 
     <!-- Sidebar Navigation -->
-    <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 md:h-screen md:sticky md:top-0 overflow-y-auto">
+    <aside class="w-full lg:w-72 bg-slate-900 text-slate-400 flex-shrink-0 lg:h-screen lg:sticky lg:top-0 overflow-y-auto border-r border-slate-800 z-20">
         <div class="p-6 border-b border-slate-800">
-            <h1 class="text-xl font-bold text-white tracking-tight">Tally<span class="text-blue-500">Extractor</span> Docs</h1>
-            <p class="text-xs text-slate-500 mt-1">Technical Reference v1.2</p>
+            <div class="flex items-center gap-2 mb-1">
+                <i class="fa-solid fa-database text-blue-500"></i>
+                <span class="text-lg font-bold text-slate-100 tracking-tight">Data<span class="text-blue-500">Architect</span></span>
+            </div>
+            <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Tally to SQL Pipeline</p>
         </div>
-        <nav class="p-4 space-y-1">
-            <a href="#overview" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Overview</a>
-            <a href="#master-list" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Master Collections</a>
-            <a href="#transaction-list" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Transaction Types</a>
-            <a href="#code-snippets" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Report XML Snippets</a>
-            <a href="#methods" class="block px-4 py-2 rounded hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">Extraction Methods</a>
+        <nav class="p-4 space-y-1 text-sm font-medium">
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-2">Context</div>
+            <a href="#paradox" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">The Object-Relational Paradox</a>
+            <a href="#star-schema" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Target Star Schema</a>
+
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Extraction Methods</div>
+            <a href="#odbc" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Method A: ODBC (The Basics)</a>
+            <a href="#xml-api" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Method B: XML & TDL Injection</a>
+            
+            <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Compliance & Strategy</div>
+            <a href="#audit-log" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-amber-500"><i class="fa-solid fa-shield-halved mr-1"></i> Audit Trail (Edit Log)</a>
+            <a href="#etl-strategy" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">ETL Lifecycle & Incremental</a>
         </nav>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 min-w-0 overflow-hidden">
-        <div class="max-w-5xl mx-auto px-6 py-12 space-y-16">
+    <main class="flex-1 min-w-0 overflow-y-auto">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 px-8 py-6 sticky top-0 z-10 bg-opacity-95 backdrop-blur">
+            <h1 class="text-2xl font-bold text-slate-900">Enterprise Data Integration Architecture</h1>
+            <p class="text-slate-500 mt-1">Migrating from Tally's OODBMS to Microsoft SQL Server for Centralized Intelligence</p>
+        </header>
 
-            <!-- Overview -->
-            <section id="overview">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">Tally Data Extraction Guide</h2>
-                <p class="text-lg text-slate-600 leading-relaxed">
-                    This documentation provides a comprehensive list of Tally ERP 9 / Tally Prime objects and standard XML patterns for extracting data to SQL, Power BI, or custom applications. Tally uses a hierarchical object model rather than a relational table structure.
+        <div class="max-w-5xl mx-auto px-8 py-12 space-y-20">
+
+            <!-- Section 1: The Paradox -->
+            <section id="paradox" class="scroll-mt-32">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase">Architectural Challenge</span>
+                    <h2 class="text-3xl font-bold text-slate-900">The Object-Relational Paradox</h2>
+                </div>
+                <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                    The impedance mismatch between Tally's hierarchical Object-Oriented Database Management System (OODBMS) and SQL Server's relational model is the primary engineering hurdle. Tally data is encapsulated in recursive "Objects" (Collections), whereas SQL requires normalized "Tables".
                 </p>
-            </section>
 
-            <!-- Master Lists -->
-            <section id="master-list" class="scroll-mt-12">
-                <div class="border-l-4 border-blue-600 pl-4 mb-6">
-                    <h3 class="text-2xl font-bold text-slate-900">1. Master Collections</h3>
-                    <p class="text-slate-500">Static data entities that define the structure of accounts and inventory.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Accounting Masters -->
-                    <div class="bg-slate-50 rounded-lg border border-slate-200 p-5">
-                        <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Accounting
-                        </h4>
-                        <ul class="space-y-2 text-sm text-slate-600 font-mono">
-                            <li class="flex justify-between"><span class="font-semibold">Group</span> <span class="text-xs text-slate-400">Hierarchical parent</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Ledger</span> <span class="text-xs text-slate-400">Main account object</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Cost Category</span> <span class="text-xs text-slate-400">Dim 1 container</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Cost Centre</span> <span class="text-xs text-slate-400">Dimension/Tag</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Voucher Type</span> <span class="text-xs text-slate-400">Config definitions</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Currency</span> <span class="text-xs text-slate-400">Multi-currency</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Budget</span> <span class="text-xs text-slate-400">Financial targets</span></li>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                    <!-- Tally Side -->
+                    <div class="bg-slate-50 p-8 border-b md:border-b-0 md:border-r border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-orange-500"></i> Tally Object Model (TOM)
+                        </h3>
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Hierarchical:</strong> Vouchers contain LedgerEntries, which contain BillAllocations.</span></li>
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Polymorphic:</strong> A Sales Voucher and Payment Voucher share the "Voucher" ID but have completely different fields.</span></li>
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Methods ($):</strong> Attributes are accessed via methods like <code class="bg-slate-200 px-1 rounded text-xs">$OpeningBalance</code>.</span></li>
                         </ul>
                     </div>
-
-                    <!-- Inventory Masters -->
-                    <div class="bg-slate-50 rounded-lg border border-slate-200 p-5">
-                        <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-green-500 rounded-full"></span> Inventory
-                        </h4>
-                        <ul class="space-y-2 text-sm text-slate-600 font-mono">
-                            <li class="flex justify-between"><span class="font-semibold">Stock Group</span> <span class="text-xs text-slate-400">Hierarchy</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Stock Item</span> <span class="text-xs text-slate-400">Product/Service</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Stock Category</span> <span class="text-xs text-slate-400">Parallel hierarchy</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Unit</span> <span class="text-xs text-slate-400">UOM definitions</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Godown</span> <span class="text-xs text-slate-400">Locations/Warehouses</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Batch</span> <span class="text-xs text-slate-400">Lot numbers</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Price List</span> <span class="text-xs text-slate-400">Rate definitions</span></li>
-                        </ul>
-                    </div>
-
-                    <!-- Payroll & Statutory -->
-                    <div class="bg-slate-50 rounded-lg border border-slate-200 p-5">
-                        <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span> Payroll & Other
-                        </h4>
-                        <ul class="space-y-2 text-sm text-slate-600 font-mono">
-                            <li class="flex justify-between"><span class="font-semibold">Employee Group</span> <span class="text-xs text-slate-400">Dept/Div</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Employee</span> <span class="text-xs text-slate-400">Staff master</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Pay Head</span> <span class="text-xs text-slate-400">Salary components</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Attendance Type</span> <span class="text-xs text-slate-400">Leave definitions</span></li>
-                            <li class="flex justify-between"><span class="font-semibold">Tax Classification</span> <span class="text-xs text-slate-400">GST/VAT Rates</span></li>
+                    <!-- SQL Side -->
+                    <div class="bg-white p-8">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-table text-blue-600"></i> SQL Relational Model
+                        </h3>
+                         <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Normalized:</strong> Data must be exploded into Header, Line Items, and Allocations tables.</span></li>
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Strict Schema:</strong> Columns must be defined (DECIMAL, NVARCHAR) and cannot vary row-by-row.</span></li>
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-slate-400 mt-1"></i> <span><strong>Flattened:</strong> Hierarchies must be resolved into Foreign Key relationships.</span></li>
                         </ul>
                     </div>
                 </div>
             </section>
 
-            <!-- Transaction Lists -->
-            <section id="transaction-list" class="scroll-mt-12">
-                <div class="border-l-4 border-blue-600 pl-4 mb-6">
-                    <h3 class="text-2xl font-bold text-slate-900">2. Transactions (Vouchers)</h3>
-                    <p class="text-slate-500">All transactions are stored in the <code class="bg-slate-100 px-1 rounded text-sm">Voucher</code> object. They are differentiated by <code class="bg-slate-100 px-1 rounded text-sm">VoucherTypeName</code>.</p>
-                </div>
+            <!-- Section 2: Method A (ODBC) -->
+            <section id="odbc" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Method A: The ODBC Interface</h2>
+                <p class="text-slate-600 mb-6">
+                    The synchronous pathway. Tally acts as an ODBC Server (Port 9000). Suitable for ad-hoc queries but suffers from the "Cartesian Product" explosion during flattening and blocks the Tally UI.
+                </p>
 
-                <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-50">
+                <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm mb-8">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-700 text-sm uppercase">Table 1: Standard Ledger Schema</h3>
+                        <span class="text-xs text-slate-500">Partial Mapping</span>
+                    </div>
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-white">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Voucher Type</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Purpose</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Key Sub-Collections</th>
+                                <th class="px-6 py-3 text-left font-medium text-slate-500">ODBC Field ($)</th>
+                                <th class="px-6 py-3 text-left font-medium text-slate-500">Description</th>
+                                <th class="px-6 py-3 text-left font-medium text-slate-500">SQL Target Type</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-slate-200 text-sm">
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Sales / Sales Order</td>
-                                <td class="px-6 py-4 text-slate-600">Revenue recording, Invoicing.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries, LedgerEntries</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Purchase / Purchase Order</td>
-                                <td class="px-6 py-4 text-slate-600">Procurement, Expense recording.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries, LedgerEntries</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Receipt / Payment</td>
-                                <td class="px-6 py-4 text-slate-600">Bank/Cash inflows and outflows.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">LedgerEntries, BankAllocations</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Journal</td>
-                                <td class="px-6 py-4 text-slate-600">Adjustments, non-cash transactions.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">LedgerEntries</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Contra</td>
-                                <td class="px-6 py-4 text-slate-600">Cash deposit/withdrawal, Fund transfer.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">LedgerEntries</td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Debit / Credit Note</td>
-                                <td class="px-6 py-4 text-slate-600">Returns, Rate differences.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries, LedgerEntries</td>
-                            </tr>
-                             <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Stock Journal</td>
-                                <td class="px-6 py-4 text-slate-600">Manufacturing, Transfer of materials.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">InventoryEntries (In/Out)</td>
-                            </tr>
-                             <tr>
-                                <td class="px-6 py-4 font-medium text-slate-900">Payroll Voucher</td>
-                                <td class="px-6 py-4 text-slate-600">Salary processing.</td>
-                                <td class="px-6 py-4 text-slate-500 font-mono text-xs">AttendanceEntries, PayHeadEntries</td>
-                            </tr>
+                        <tbody class="divide-y divide-slate-200">
+                            <tr><td class="px-6 py-3 font-mono text-slate-700">$Name</td><td class="px-6 py-3">Unique Identifier (PK)</td><td class="px-6 py-3 font-mono text-blue-600">NVARCHAR(255)</td></tr>
+                            <tr><td class="px-6 py-3 font-mono text-slate-700">$Parent</td><td class="px-6 py-3">Group Hierarchy</td><td class="px-6 py-3 font-mono text-blue-600">NVARCHAR(255)</td></tr>
+                            <tr><td class="px-6 py-3 font-mono text-slate-700">$ClosingBalance</td><td class="px-6 py-3">Computed Balance</td><td class="px-6 py-3 font-mono text-blue-600">DECIMAL(18,2)</td></tr>
+                            <tr><td class="px-6 py-3 font-mono text-slate-700">$Partygstin</td><td class="px-6 py-3">GST Number</td><td class="px-6 py-3 font-mono text-blue-600">NVARCHAR(20)</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Code Snippets -->
-            <section id="code-snippets" class="scroll-mt-12">
-                <div class="border-l-4 border-blue-600 pl-4 mb-6">
-                    <h3 class="text-2xl font-bold text-slate-900">3. Developer Reference: XML Snippets</h3>
-                    <p class="text-slate-500">Send these XML payloads to Tally's HTTP port (default: <code class="text-xs bg-slate-100 p-1">http://localhost:9000</code>) via POST method to fetch data.</p>
+            <!-- Section 3: XML & TDL Injection -->
+            <section id="xml-api" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Method B: XML API & <span class="text-blue-600">TDL Injection</span></h2>
+                    <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wide border border-green-200">The Killer Feature</span>
                 </div>
+                
+                <p class="text-slate-600 mb-6">
+                    The superior methodology for Data Warehousing. Unlike ODBC, it allows <strong class="text-slate-900">TDL Injection</strong>—the ability to send temporary TDL definitions inside the request payload. This enables a "Zero Footprint" extraction (no TCP files needed on client machines) and creates custom, optimized collections on the fly.
+                </p>
 
-                <!-- Tabs for Snippets -->
-                <div class="mb-4 border-b border-slate-200">
-                    <nav class="-mb-px flex space-x-8" id="snippetTabs">
-                        <button onclick="showSnippet('tb')" class="snippet-tab border-blue-500 text-blue-600 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Trial Balance</button>
-                        <button onclick="showSnippet('daybook')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Daybook (Vouchers)</button>
-                        <button onclick="showSnippet('sql')" class="snippet-tab border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Raw SQL Query (ODBC)</button>
-                    </nav>
-                </div>
-
-                <!-- Snippet 1: Trial Balance -->
-                <div id="snip-tb" class="snippet-content">
-                    <p class="text-sm text-slate-600 mb-3">Use this to export the standard "Trial Balance" report structure. This utilizes the <code class="font-mono text-xs">EXPORT</code> method.</p>
-                    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
-<pre class="text-xs font-mono leading-5">
+                <!-- Code Example -->
+                <div class="bg-slate-900 rounded-xl shadow-2xl overflow-hidden my-8">
+                    <div class="bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-700">
+                        <span class="text-xs text-slate-400 font-mono">POST http://localhost:9000/</span>
+                        <span class="text-xs text-slate-500">XML Payload with Injection</span>
+                    </div>
+                    <div class="p-6 overflow-x-auto">
+<pre class="text-sm font-mono leading-6 code-bg">
 <span class="token-tag">&lt;ENVELOPE&gt;</span>
-    <span class="token-tag">&lt;HEADER&gt;</span>
-        <span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export Data<span class="token-tag">&lt;/TALLYREQUEST&gt;</span>
-    <span class="token-tag">&lt;/HEADER&gt;</span>
+    <span class="token-tag">&lt;HEADER&gt;</span><span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export<span class="token-tag">&lt;/TALLYREQUEST&gt;</span><span class="token-tag">&lt;/HEADER&gt;</span>
     <span class="token-tag">&lt;BODY&gt;</span>
         <span class="token-tag">&lt;EXPORTDATA&gt;</span>
             <span class="token-tag">&lt;REQUESTDESC&gt;</span>
-                <span class="token-tag">&lt;REPORTNAME&gt;</span>Trial Balance<span class="token-tag">&lt;/REPORTNAME&gt;</span>
+                <span class="token-tag">&lt;REPORTNAME&gt;</span>CustomVoucherReport<span class="token-tag">&lt;/REPORTNAME&gt;</span>
                 <span class="token-tag">&lt;STATICVARIABLES&gt;</span>
                     <span class="token-tag">&lt;SVEXPORTFORMAT&gt;</span>$$SysName:XML<span class="token-tag">&lt;/SVEXPORTFORMAT&gt;</span>
                 <span class="token-tag">&lt;/STATICVARIABLES&gt;</span>
             <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
         <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
+        
+        <span class="token-comment">&lt;!-- TDL INJECTION: DEFINING A TEMPORARY COLLECTION --&gt;</span>
+        <span class="token-tag">&lt;TDL&gt;</span>
+            <span class="token-tag">&lt;TDLMESSAGE&gt;</span>
+                <span class="token-tag">&lt;REPORT NAME="CustomVoucherReport"&gt;</span>
+                    <span class="token-tag">&lt;FORMS&gt;</span>CustomVoucherForm<span class="token-tag">&lt;/FORMS&gt;</span>
+                <span class="token-tag">&lt;/REPORT&gt;</span>
+                <span class="token-tag">&lt;!-- ... Form and Part definitions skipped for brevity ... --&gt;</span>
+                
+                <span class="token-tag">&lt;COLLECTION NAME="MySQL_Voucher_Collection"&gt;</span>
+                    <span class="token-tag">&lt;TYPE&gt;</span>Voucher<span class="token-tag">&lt;/TYPE&gt;</span>
+                    <span class="token-tag">&lt;!-- EAGER LOAD specific fields to optimize performance --&gt;</span>
+                    <span class="token-tag">&lt;FETCH&gt;</span>Date, VoucherNumber, Amount, AllLedgerEntries<span class="token-tag">&lt;/FETCH&gt;</span>
+                <span class="token-tag">&lt;/COLLECTION&gt;</span>
+            <span class="token-tag">&lt;/TDLMESSAGE&gt;</span>
+        <span class="token-tag">&lt;/TDL&gt;</span>
     <span class="token-tag">&lt;/BODY&gt;</span>
 <span class="token-tag">&lt;/ENVELOPE&gt;</span>
 </pre>
                     </div>
                 </div>
 
-                <!-- Snippet 2: Daybook -->
-                <div id="snip-daybook" class="snippet-content hidden">
-                    <p class="text-sm text-slate-600 mb-3">Use this to fetch raw Voucher objects within a specific date range. This is the most common pattern for ETL.</p>
-                    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
-<pre class="text-xs font-mono leading-5">
-<span class="token-tag">&lt;ENVELOPE&gt;</span>
-    <span class="token-tag">&lt;HEADER&gt;</span>
-        <span class="token-tag">&lt;TALLYREQUEST&gt;</span>Export Data<span class="token-tag">&lt;/TALLYREQUEST&gt;</span>
-    <span class="token-tag">&lt;/HEADER&gt;</span>
-    <span class="token-tag">&lt;BODY&gt;</span>
-        <span class="token-tag">&lt;EXPORTDATA&gt;</span>
-            <span class="token-tag">&lt;REQUESTDESC&gt;</span>
-                <span class="token-tag">&lt;REPORTNAME&gt;</span>Voucher Register<span class="token-tag">&lt;/REPORTNAME&gt;</span>
-                <span class="token-tag">&lt;STATICVARIABLES&gt;</span>
-                    <span class="token-tag">&lt;SVFROMDATE&gt;</span>20230401<span class="token-tag">&lt;/SVFROMDATE&gt;</span>
-                    <span class="token-tag">&lt;SVTODATE&gt;</span>20230430<span class="token-tag">&lt;/SVTODATE&gt;</span>
-                    <span class="token-tag">&lt;SVEXPORTFORMAT&gt;</span>$$SysName:XML<span class="token-tag">&lt;/SVEXPORTFORMAT&gt;</span>
-                <span class="token-tag">&lt;/STATICVARIABLES&gt;</span>
-            <span class="token-tag">&lt;/REQUESTDESC&gt;</span>
-        <span class="token-tag">&lt;/EXPORTDATA&gt;</span>
-    <span class="token-tag">&lt;/BODY&gt;</span>
-<span class="token-tag">&lt;/ENVELOPE&gt;</span>
-</pre>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <h4 class="font-bold text-blue-800 mb-2 text-sm uppercase">Zero Deployment</h4>
+                        <p class="text-xs text-slate-600">No need to restart Tally or copy .tcp files. The extraction logic lives in your python/C# script.</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <h4 class="font-bold text-blue-800 mb-2 text-sm uppercase">Eager Loading</h4>
+                        <p class="text-xs text-slate-600">Using <code class="mono">FETCH</code> prevents lazy-loading, speeding up bulk export by 10-50x.</p>
+                    </div>
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
+                        <h4 class="font-bold text-purple-800 mb-2 text-sm uppercase">JSON Support (Rel 4.0)</h4>
+                        <p class="text-xs text-slate-600">Newer Tally versions support JSON response formats for easier parsing in Node/Python.</p>
                     </div>
                 </div>
-
-                <!-- Snippet 3: SQL -->
-                <div id="snip-sql" class="snippet-content hidden">
-                    <p class="text-sm text-slate-600 mb-3">If using the ODBC Driver (Port 9000), you can use standard SQL Select statements. Note: This is slower than XML.</p>
-                    <div class="bg-slate-900 rounded-lg p-4 overflow-x-auto code-block shadow-inner">
-<pre class="text-xs font-mono text-blue-300 leading-5">
--- Select Ledger Masters
-SELECT $Name, $Parent, $OpeningBalance FROM Ledger
-
--- Select Vouchers
-SELECT $Date, $VoucherNumber, $PartyLedgerName, $Amount 
-FROM Voucher 
-WHERE $VoucherTypeName = 'Sales'
-</pre>
-                    </div>
-                </div>
-
             </section>
 
-            <!-- Methods Comparison -->
-            <section id="methods" class="pb-16 scroll-mt-12">
-                 <div class="border-l-4 border-blue-600 pl-4 mb-6">
-                    <h3 class="text-2xl font-bold text-slate-900">4. Extraction Methods</h3>
-                    <p class="text-slate-500">Comparison of available integration architectures.</p>
+            <!-- Section 4: Audit Log -->
+            <section id="audit-log" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                <div class="flex items-center gap-3 mb-6">
+                    <i class="fa-solid fa-gavel text-amber-500 text-2xl"></i>
+                    <h2 class="text-2xl font-bold text-slate-900">Audit Trail & Compliance (Edit Log)</h2>
                 </div>
+                <p class="text-slate-600 mb-6">
+                    Mandated by the MCA for specific classes of companies. Tally Prime Release 2.1+ tracks the history of all changes. Extraction requires accessing deep version details.
+                </p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Method 1 -->
-                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                        <h4 class="font-bold text-slate-800 mb-2">XML over HTTP (Recommended)</h4>
-                        <p class="text-sm text-slate-600 mb-4">The standard for high-volume extraction. Tally acts as a server receiving XML requests.</p>
-                        <ul class="text-xs space-y-1 text-slate-500">
-                            <li>✅ Fast & robust</li>
-                            <li>✅ Full data access</li>
-                            <li>❌ Requires parsing logic</li>
-                        </ul>
+                <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
+                    <h3 class="font-bold text-slate-800 mb-4">Forensic Fields to Extract</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$CreatedBy</span>
+                            <span class="text-slate-500 text-sm">User who made the entry</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$CreatedDate</span>
+                            <span class="text-slate-500 text-sm">Timestamp of creation</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$AlteredBy</span>
+                            <span class="text-slate-500 text-sm">User who last modified</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-100 pb-2">
+                            <span class="font-mono text-slate-600 text-sm">$AlteredOn</span>
+                            <span class="text-slate-500 text-sm">Timestamp of modification</span>
+                        </div>
+                         <div class="flex justify-between border-b border-slate-100 pb-2 col-span-full">
+                            <span class="font-mono text-slate-600 text-sm">$Action</span>
+                            <span class="text-slate-500 text-sm">Type: <span class="text-green-600 font-bold">Create</span>, <span class="text-blue-600 font-bold">Alter</span>, <span class="text-red-600 font-bold">Delete</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 bg-amber-50 p-4 rounded border border-amber-100 text-sm text-amber-800">
+                        <strong>⚠️ Handling Deletions:</strong> Deleted vouchers disappear from standard reports. You must query the specific "Deleted Vouchers" collection or track "Gaps" in Master IDs in your SQL warehouse to maintain a true audit log.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5: ETL Strategy -->
+            <section id="etl-strategy" class="scroll-mt-32 border-t border-slate-100 pt-16 pb-32">
+                <h2 class="text-2xl font-bold text-slate-900 mb-6">Target Star Schema & ETL Strategy</h2>
+                
+                <div class="space-y-8">
+                    <!-- Schema Design -->
+                    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 text-lg">1. Star Schema Design</h3>
+                        <p class="text-sm text-slate-600 mb-4">Do not replicate Tally's hierarchy in SQL. Flatten data into Facts and Dimensions.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-slate-200 p-3 rounded bg-slate-50">
+                                <div class="font-bold text-blue-700 text-sm mb-1">Fact_Transaction_Lines</div>
+                                <div class="text-xs text-slate-500">Granularity: One row per ledger entry. Contains Amount, LedgerKey, VoucherKey.</div>
+                            </div>
+                            <div class="border border-slate-200 p-3 rounded bg-slate-50">
+                                <div class="font-bold text-slate-700 text-sm mb-1">Dim_Ledger</div>
+                                <div class="text-xs text-slate-500">Name, Group, GSTIN, State, Parent.</div>
+                            </div>
+                            <div class="border border-slate-200 p-3 rounded bg-slate-50">
+                                <div class="font-bold text-slate-700 text-sm mb-1">Dim_Date</div>
+                                <div class="text-xs text-slate-500">Fiscal Year, Quarter, Month.</div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Method 2 -->
-                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                        <h4 class="font-bold text-slate-800 mb-2">ODBC Interface</h4>
-                        <p class="text-sm text-slate-600 mb-4">Tally acts as a database driver. Good for ad-hoc queries via Excel/PowerBI.</p>
-                         <ul class="text-xs space-y-1 text-slate-500">
-                            <li>✅ Easy setup (Excel)</li>
-                            <li>❌ Very slow for large data</li>
-                            <li>❌ Limited schema support</li>
-                        </ul>
+                    <!-- Incremental Logic -->
+                    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 text-lg">2. Incremental Load (CDC)</h3>
+                        <ol class="list-decimal list-inside space-y-3 text-sm text-slate-700">
+                            <li><strong>Initial Load:</strong> Extract all history.</li>
+                            <li><strong>Delta Logic:</strong> Query Tally for Vouchers where <code class="bg-slate-100 px-1 rounded">$AlteredOn > Last_SQL_Sync_Time</code>.</li>
+                            <li><strong>Upsert:</strong> Check if <code class="mono">$GUID</code> exists in SQL.
+                                <ul class="pl-8 list-disc text-slate-500 mt-1">
+                                    <li>If exists: <strong>DELETE</strong> old lines, <strong>INSERT</strong> new lines (handles modification).</li>
+                                    <li>If new: <strong>INSERT</strong>.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Concurrency:</strong> Queue exports sequentially. Tally is single-threaded.</li>
+                        </ol>
                     </div>
                 </div>
             </section>
@@ -313,23 +310,26 @@ WHERE $VoucherTypeName = 'Sales'
     </main>
 
     <script>
-        function showSnippet(id) {
-            // Hide all snippets
-            document.querySelectorAll('.snippet-content').forEach(el => el.classList.add('hidden'));
-            // Show selected snippet
-            document.getElementById('snip-' + id).classList.remove('hidden');
-
-            // Reset Tabs
-            document.querySelectorAll('.snippet-tab').forEach(el => {
-                el.classList.remove('border-blue-500', 'text-blue-600');
-                el.classList.add('border-transparent', 'text-slate-500');
-            });
+        // Simple ScrollSpy for Sidebar Highlighting
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
             
-            // Activate Tab
-            const activeTab = document.querySelector(`button[onclick="showSnippet('${id}')"]`);
-            activeTab.classList.remove('border-transparent', 'text-slate-500');
-            activeTab.classList.add('border-blue-500', 'text-blue-600');
-        }
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
     </script>
 </body>
 </html>
