@@ -354,7 +354,7 @@
                             <i class="fa-brands fa-python text-blue-500"></i> Method A: ODBC Discovery
                         </h4>
                         <p class="text-sm text-slate-600 mb-4">
-                            Tally exposes a meta-table called simply <code>Table</code>. Querying this gives you a list of all currently exposed ODBC collections.
+                            To see exactly which tables are exposed to ODBC in your version of Tally, query the system table <code>ODBCTables</code>.
                         </p>
                         <div class="bg-slate-900 rounded p-4 overflow-x-auto">
 <pre class="text-xs font-mono leading-5 code-bg">
@@ -365,7 +365,8 @@ conn = pyodbc.connect(<span class="token-string">"Driver={Tally ODBC Driver};Ser
 cursor = conn.cursor()
 
 <span class="token-comment"># 2. List all tables</span>
-cursor.execute(<span class="token-string">"SELECT $Name FROM Table"</span>)
+<span class="token-comment"># Query the meta-table to find available collections</span>
+cursor.execute(<span class="token-string">"SELECT $Name FROM ODBCTables"</span>)
 tables = cursor.fetchall()
 
 <span class="token-func">print</span>(f<span class="token-string">"Found {len(tables)} tables:"</span>)
