@@ -60,6 +60,7 @@
             <a href="#paradox" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">The Object Paradox</a>
             <a href="#datamodel" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Data Model Explorer</a>
             <a href="#odbc-collections" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-blue-400"><i class="fa-solid fa-table-list mr-1"></i> Standard ODBC Tables</a>
+            <a href="#xml-collections" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-green-400"><i class="fa-solid fa-file-code mr-1"></i> XML API Collections</a>
             <a href="#methods" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Extraction Methods</a>
 
             <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Code & Implementation</div>
@@ -111,7 +112,7 @@
             <section id="datamodel" class="mb-16 scroll-mt-32 border-t border-slate-100 pt-16">
                 <h3 class="text-2xl font-semibold text-stone-900 mb-6 text-center">Tally Data Model: Masters & Transactions</h3>
                 <p class="text-md text-stone-600 max-w-2xl mx-auto text-center mb-8">
-                    Tally does not expose data as SQL "tables." It exposes "Objects" or "Collections." Understanding this structure is critical. Data is broadly divided into Masters (static setup data) and Transactions (dynamic voucher entries).
+                    Tally does not expose data as SQL "tables." It exposes "Objects" or "Collections." Understanding this structure is critical. Data is broadly divided into Masters (static setup data) and Transactions (dynamic voucher entries). Explore the key objects below.
                 </p>
 
                 <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 bg-white p-6 rounded-lg shadow-lg border border-stone-200">
@@ -269,6 +270,67 @@
                     <p class="text-blue-700">
                         Some collections are internal. In the Tally Developer tool, checking the property <code class="font-mono bg-blue-100 px-1 rounded">IsODBCTable</code> reveals if a collection is exposed. If you need a custom collection (e.g., "MyCustomReport"), you must modify its TDL to include <code class="font-mono font-bold">IsODBCTable: Yes</code>.
                     </p>
+                </div>
+            </section>
+
+            <!-- Section 1.7: XML Collections Reference -->
+            <section id="xml-collections" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">XML API Collections & Reports</h2>
+                    <span class="text-xs font-mono text-green-700 bg-green-100 border border-green-200 px-2 py-1 rounded">Access: Unlimited</span>
+                </div>
+                <p class="text-slate-600 mb-6">
+                    Unlike ODBC, the XML API gives access to <strong>every</strong> internal object and report. You can extract pre-calculated Reports (which do the math for you) or raw Collections.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Standard Reports -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-file-lines text-blue-500"></i> Standard Reports
+                        </h4>
+                        <p class="text-xs text-slate-500 mb-3">Extract these to get calculated data (e.g., Closing Balances, Aged Funds) without manual logic.</p>
+                        <ul class="space-y-2 text-sm text-slate-700 font-medium">
+                            <li>Trial Balance</li>
+                            <li>Balance Sheet</li>
+                            <li>Profit and Loss Statement</li>
+                            <li>Day Book</li>
+                            <li>Stock Summary</li>
+                            <li>Bills Outstanding</li>
+                            <li>Ratio Analysis</li>
+                        </ul>
+                    </div>
+
+                    <!-- Raw Collections -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-cubes text-green-600"></i> Primary Collections
+                        </h4>
+                        <p class="text-xs text-slate-500 mb-3">Used for constructing your own data warehouse. These are the raw data blocks.</p>
+                        <ul class="space-y-2 text-sm text-slate-700 font-medium">
+                            <li>Collection: <strong>Ledger</strong></li>
+                            <li>Collection: <strong>Voucher</strong></li>
+                            <li>Collection: <strong>StockItem</strong></li>
+                            <li>Collection: <strong>Godown</strong></li>
+                            <li>Collection: <strong>CostCentre</strong></li>
+                            <li>Collection: <strong>Unit</strong></li>
+                        </ul>
+                    </div>
+
+                    <!-- Internal/Audit -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-5">
+                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-lock text-amber-600"></i> Internal & Audit
+                        </h4>
+                        <p class="text-xs text-slate-500 mb-3">Advanced collections for system status and compliance.</p>
+                        <ul class="space-y-2 text-sm text-slate-700 font-medium">
+                            <li>Collection: <strong>Company</strong> <span class="text-xs text-slate-400">(Settings)</span></li>
+                            <li>Collection: <strong>TallyUser</strong> <span class="text-xs text-slate-400">(Security)</span></li>
+                            <li>Collection: <strong>VoucherType</strong> <span class="text-xs text-slate-400">(Config)</span></li>
+                            <li>Collection: <strong>List of Companies</strong></li>
+                            <li>Report: <strong>Voucher Audit</strong></li>
+                        </ul>
+                    </div>
                 </div>
             </section>
 
