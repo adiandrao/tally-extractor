@@ -59,10 +59,11 @@
             <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-2">Fundamentals</div>
             <a href="#paradox" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">The Object Paradox</a>
             <a href="#datamodel" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Data Model Explorer</a>
+            <a href="#odbc-collections" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-blue-400"><i class="fa-solid fa-table-list mr-1"></i> Standard ODBC Tables</a>
             <a href="#methods" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Extraction Methods</a>
 
             <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Code & Implementation</div>
-            <a href="#developer-ref" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors text-blue-400"><i class="fa-solid fa-code mr-1"></i> Reference & Snippets</a>
+            <a href="#developer-ref" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors"><i class="fa-solid fa-code mr-1"></i> Reference & Snippets</a>
             
             <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase mt-4">Architecture</div>
             <a href="#star-schema" class="nav-link block px-3 py-2 rounded hover:bg-slate-800 hover:text-slate-200 transition-colors">Target Star Schema</a>
@@ -106,11 +107,11 @@
                 </div>
             </section>
 
-            <!-- Section 1.5: Data Model Explorer (Added as requested) -->
+            <!-- Section 1.5: Data Model Explorer -->
             <section id="datamodel" class="mb-16 scroll-mt-32 border-t border-slate-100 pt-16">
                 <h3 class="text-2xl font-semibold text-stone-900 mb-6 text-center">Tally Data Model: Masters & Transactions</h3>
                 <p class="text-md text-stone-600 max-w-2xl mx-auto text-center mb-8">
-                    Tally does not expose data as SQL "tables." It exposes "Objects" or "Collections." Understanding this structure is critical. Data is broadly divided into Masters (static setup data) and Transactions (dynamic voucher entries). Explore the key objects below.
+                    Tally does not expose data as SQL "tables." It exposes "Objects" or "Collections." Understanding this structure is critical. Data is broadly divided into Masters (static setup data) and Transactions (dynamic voucher entries).
                 </p>
 
                 <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 bg-white p-6 rounded-lg shadow-lg border border-stone-200">
@@ -196,6 +197,78 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- Section 1.6: Standard ODBC Tables Reference -->
+            <section id="odbc-collections" class="scroll-mt-32 border-t border-slate-100 pt-16">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">Standard ODBC Collections</h2>
+                    <span class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">IsODBCTable: Yes</span>
+                </div>
+                <p class="text-slate-600 mb-6">
+                    These are the primary tables available via ODBC <code class="text-xs bg-slate-100 px-1 rounded">FROM [TableName]</code>. Custom TDL collections are hidden unless explicitly exposed.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Accounting -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                        <h4 class="font-bold text-blue-700 border-b border-slate-100 pb-2 mb-2 text-sm uppercase tracking-wide">Accounting</h4>
+                        <ul class="space-y-1.5 text-sm text-slate-600 font-mono">
+                            <li>Group</li>
+                            <li>Ledger</li>
+                            <li>CostCategory</li>
+                            <li>CostCentre</li>
+                            <li>VoucherType</li>
+                            <li>Currency</li>
+                            <li>Budget</li>
+                        </ul>
+                    </div>
+
+                    <!-- Inventory -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                        <h4 class="font-bold text-teal-600 border-b border-slate-100 pb-2 mb-2 text-sm uppercase tracking-wide">Inventory</h4>
+                        <ul class="space-y-1.5 text-sm text-slate-600 font-mono">
+                            <li>StockGroup</li>
+                            <li>StockItem</li>
+                            <li>StockCategory</li>
+                            <li>Unit</li>
+                            <li>Godown</li>
+                            <li>PriceList</li>
+                            <li>Batch</li>
+                        </ul>
+                    </div>
+
+                    <!-- Transactions -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                        <h4 class="font-bold text-amber-600 border-b border-slate-100 pb-2 mb-2 text-sm uppercase tracking-wide">Transactions</h4>
+                        <ul class="space-y-1.5 text-sm text-slate-600 font-mono">
+                            <li>Voucher</li>
+                            <li class="text-slate-400 italic text-xs mt-2 border-t border-slate-50 pt-1">
+                                Note: Sub-collections (LedgerEntries) are flattened or require XML.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Payroll / System -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                        <h4 class="font-bold text-purple-600 border-b border-slate-100 pb-2 mb-2 text-sm uppercase tracking-wide">Payroll & System</h4>
+                        <ul class="space-y-1.5 text-sm text-slate-600 font-mono">
+                            <li>Company</li>
+                            <li>Employee</li>
+                            <li>EmployeeGroup</li>
+                            <li>AttendanceType</li>
+                            <li>PayHead</li>
+                            <li>TallyUser</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg text-sm">
+                    <p class="font-bold text-blue-800 mb-1">💡 Pro Tip: How to find hidden tables?</p>
+                    <p class="text-blue-700">
+                        Some collections are internal. In the Tally Developer tool, checking the property <code class="font-mono bg-blue-100 px-1 rounded">IsODBCTable</code> reveals if a collection is exposed. If you need a custom collection (e.g., "MyCustomReport"), you must modify its TDL to include <code class="font-mono font-bold">IsODBCTable: Yes</code>.
+                    </p>
                 </div>
             </section>
 
@@ -314,36 +387,43 @@ conn = pyodbc.connect(conn_str)
 cursor = conn.cursor()
 
 <span class="token-comment"># Execute Query</span>
-<span class="token-comment"># Note: Tally fields start with $</span>
+<span class="token-comment"># WARNING: Tally ODBC is sensitive.</span>
+<span class="token-comment"># 1. DO NOT use 'SELECT *' (Causes 'Could not find description' error).</span>
+<span class="token-comment"># 2. DO NOT use complex fields like $PartyLedgerName if they aren't exposed.</span>
+<span class="token-comment"># 3. START SIMPLE with $Date and $VoucherNumber.</span>
 query = <span class="token-string">"""
-    SELECT $Name, $ClosingBalance 
-    FROM Ledger 
-    WHERE $Parent = 'Sundry Debtors'
+    SELECT $Date, $VoucherNumber, $Narration 
+    FROM Voucher 
+    WHERE $VoucherTypeName = 'Sales'
 """</span>
 
 cursor.execute(query)
 rows = cursor.fetchall()
 
 <span class="token-keyword">for</span> row <span class="token-keyword">in</span> rows:
-    <span class="token-func">print</span>(f<span class="token-string">"Ledger: {row[0]}, Bal: {row[1]}"</span>)
+    <span class="token-func">print</span>(f<span class="token-string">"Date: {row[0]}, Inv: {row[1]}"</span>)
 
 conn.close()
 </pre>
                             </div>
                         </div>
                         <div>
-                             <p class="text-sm text-slate-600 mb-2 font-bold">Supported SQL Syntax</p>
+                             <p class="text-sm text-slate-600 mb-2 font-bold">Troubleshooting & Common Errors</p>
                              <div class="bg-white border border-slate-200 rounded p-4 text-sm space-y-4">
+                                <div class="bg-red-50 border-l-4 border-red-500 p-3">
+                                    <span class="block text-xs font-bold text-red-700 uppercase mb-1">Error in TDL. 'Collection:Voucher'</span>
+                                    <p class="text-xs text-red-600">
+                                        <strong>Cause:</strong> Using <code class="bg-red-100 p-0.5 rounded text-red-800">SELECT *</code> OR selecting a field that isn't valid in ODBC.<br>
+                                        <strong>Why:</strong> Tally tries to fetch internal/calculated methods that are context-dependent, causing a crash.<br>
+                                        <strong>Fix:</strong> Only select specific, simple fields like <code class="bg-green-100 p-0.5 rounded text-green-800">$Date, $VoucherNumber</code>. Avoid complex fields until you test them.
+                                    </p>
+                                </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Basic Select</span>
+                                    <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Supported Syntax</span>
                                     <code class="block bg-slate-100 p-2 rounded text-slate-700 font-mono text-xs">SELECT $Name, $Parent FROM Ledger</code>
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Filtering</span>
-                                    <code class="block bg-slate-100 p-2 rounded text-slate-700 font-mono text-xs">SELECT * FROM Voucher WHERE $VoucherTypeName = 'Sales'</code>
-                                </div>
-                                <div>
-                                    <span class="block text-xs font-bold text-red-500 uppercase mb-1">⚠️ Limitations</span>
+                                    <span class="block text-xs font-bold text-slate-500 uppercase mb-1">Limitations</span>
                                     <ul class="list-disc list-inside text-xs text-slate-600">
                                         <li><strong>NO JOINs:</strong> You cannot JOIN tables in Tally ODBC.</li>
                                         <li><strong>NO GROUP BY:</strong> Aggregations must be done in Python/SQL.</li>
